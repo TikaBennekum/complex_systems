@@ -14,6 +14,7 @@ matplotlib.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
 ### CONSTANTS
 L = 5
 FLOW_FRACTION = 0.010  # maximum fraction of water which can flow out of cell
+FRAMES = 1
 
 
 ### LAYERS
@@ -22,6 +23,7 @@ water_level[L // 2, L // 2] = 10.0
 ground_level = np.ones_like(water_level)
 for i in range(ground_level.shape[0]):
     ground_level[i, :] *= i + 1
+
 
 ### FUNCTIONS
 @jit
@@ -77,7 +79,9 @@ def donut_mask(x, y):
 def run_simulation(water_level: NDArray, ground_level: NDArray, steps):
     history = [(water_level, ground_level)]
     for i in range(steps):
+        # run functions
         water_level, ground_level = spread_water(water_level, ground_level)
+        # save results
         history.append((water_level, ground_level))
     return history
 
@@ -107,7 +111,9 @@ def animate_in_3d(history):
     shape = history[0][0].shape
 
     # Construct arrays for the anchor positions of the bars.
-    base_x, base_y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")
+    base_x, base_y = np.meshgrid(
+        np.arange(shape[0]), np.arange(shape[1]), indexing="ij"
+    )
     base_x = base_x.ravel()
     base_y = base_y.ravel()
     base_dx = base_dy = 1
@@ -141,14 +147,16 @@ def animate_in_3d(history):
             base_dy,
             np.append(ground_dz, water_dz),
             color=np.append(ground_color, water_color),
-            zsort="max"
+            zsort="max",
         ),
     ]
     ax.set(xlim3d=[0, shape[0]], ylim3d=[0, shape[1]], zlim3d=[0, 10])
 
     def update(frame, bars):
-        """Update the display by removing the current graph and making a new one. This is the only way
-        to do this unfortunately. Very inefficient."""
+        """
+        Update the display by removing the current graph and making a new one. 
+        This is the only way to do this unfortunately. Very inefficient.
+        """
         bars[0].remove()
 
         # ground
@@ -169,7 +177,7 @@ def animate_in_3d(history):
         # water_dy = 1
         water_dz = history[frame][0].ravel()[~mask]
         water_color = np.full(len(base), "deepskyblue", dtype=StringDType())[~mask]
-        
+
         bars[0] = ax.bar3d(  # type: ignore
             np.append(ground_x, water_x),
             np.append(ground_y, water_y),
@@ -178,7 +186,7 @@ def animate_in_3d(history):
             base_dy,
             np.append(ground_dz, water_dz),
             color=np.append(ground_color, water_color),
-            zsort="max"
+            zsort="max",
         )
         return bars
 
@@ -191,5 +199,5 @@ def animate_in_3d(history):
 
 if __name__ == "__main__":
     # history = run_simple(water_level, 120)
-    history = run_simulation(water_level, ground_level, 1)
+    history = run_simulation(water_level, ground_level, FRAMES)
     animate_in_3d(history)
