@@ -2,12 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
-from dataclasses import dataclass
 from numba import jit
-from inspect import getfullargspec
-from copy import copy
-from typing import Callable
-from time import thread_time
 
 import matplotlib
 import imageio_ffmpeg
@@ -32,8 +27,10 @@ def raise_water(water_level: NDArray) -> NDArray:
 
 
 @jit
-def spread_water_simple(water_level: NDArray) -> NDArray:
+def spread_water(water_level: NDArray) -> NDArray:
     change_in_water_level = np.zeros_like(water_level)
+    # use the absolute value for flow to indicate the flux of the water, even when level
+    # stays constant
     flow = np.zeros_like(water_level)
 
     for i in range(water_level.size):
@@ -50,6 +47,8 @@ def spread_water_simple(water_level: NDArray) -> NDArray:
                 water_level[other_x, other_y] - water_level[x, y]
             )
         total_delta = local_delta.sum()
+        # use the absolute value for flow to indicate the flux of the water, even when level
+        # stays constant
         flow[x, y] = abs(total_delta * FLOW_FRACTION)
         change_in_water_level[x, y] = total_delta * FLOW_FRACTION
 
@@ -75,7 +74,7 @@ def donut_mask(x, y):
 def run_simulation(water_level: NDArray, steps):
     history = [water_level]
     for i in range(steps):
-        water_level = spread_water_simple(water_level)
+        water_level = spread_water(water_level)
         history.append(water_level)
     return history
 
@@ -132,7 +131,7 @@ def animate_in_3d(history):
     animation = anim.FuncAnimation(
         fig=fig, func=update, frames=len(history), fargs=(bars,), interval=1 / 60 * 1000
     )
-    animation.save("videos/wessels_water.mp4")
+    animation.save("videos/simple_water.mp4")
     plt.close()
 
 
