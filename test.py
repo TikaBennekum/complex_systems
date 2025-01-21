@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2
 
 class CA:
     def __init__(self, width, height, water, sed):
@@ -9,31 +10,6 @@ class CA:
         self.sed = sed
         self.grid = np.zeros((width, height, 2))  # [water, sediment]
         self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height
-
-    # def grid_settings(self):
-    #     # Create a downward slope for sediment heights
-    #     for i in range(self.width):
-    #         for j in range(self.height):
-    #             self.grid[i, j, 1] = self.sed - j  # Regular downward slope for sediment
-
-    #     for i in range(self.width)
-
-    #     # Define the size of the water blob
-    #     water_blob_size = 5  # Size of the square water blob
-    #     start_row = 0
-    #     start_col = self.width // 2 - (water_blob_size // 2) # Center the blob horizontally
-
-    #     # Fill the top middle with water (square blob)
-    #     for j in range(water_blob_size):
-    #         self.grid[0, j + start_col, 0] = self.water
-
-    #     self.grid[0, self.width // 2, 0] = self.water
-    #     self.grid[0, self.width // 2 + 1, 0] = self.water
-    #     self.grid[0, self.width // 2 - 1, 0] = self.water
-    #     # for i in range(start_row, start_row + water_blob_size):
-    #     #     for j in range(start_col, start_col + water_blob_size):
-    #     #         if i < self.width and j < self.height:  # Ensure we don't go out of bounds
-    #     #             self.grid[i, j, 0] = self.water  # Fill with water
 
     def grid_settings(self):
         # Create a sloped terrain where sediment height decreases from top to bottom
@@ -118,23 +94,29 @@ class CA:
 
         self.total = self.grid[:, :, 0] + self.grid[:, :, 1]
 
-    def run_simulation(self, num_epochs):
+    def run_simulation(self, num_epochs, output_file):
         self.grid_settings()
-        fig, ax = plt.subplots()
+        frames = []  # Store frames for video
 
         for generation in range(num_epochs):
             self.update_grid()
 
-            # Visualization: water dynamics only
-            ax.clear()
-            ax.imshow(self.grid[:, :, 0], cmap='Blues', interpolation='nearest')
-            ax.set_title(f'Generation: {generation}')
-            plt.pause(0.1)
+            # Create a frame for the video (water dynamics layer)
+            frame = (self.grid[:, :, 0] / np.max(self.grid[:, :, 0]) * 255).astype(np.uint8)
+            frame_color = cv2.applyColorMap(frame, cv2.COLORMAP_JET)  # Add colormap
+            frames.append(frame_color)
 
-        plt.show()
+        # Save all frames as a video
+        height, width, _ = frames[0].shape
+        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
+        for frame in frames:
+            out.write(frame)
+        out.release()
+        print(f"Simulation saved to {output_file}")
 
 
 # Example usage
 width, height, water, sed = 100, 100, 10, 50  # Larger water source and sloped terrain
+output_file = 'videos/water_simulation.mp4'  # Output video file
 ca = CA(width, height, water, sed)
-ca.run_simulation(20)
+ca.run_simulation(50, output_file)
