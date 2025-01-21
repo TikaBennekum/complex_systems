@@ -10,6 +10,29 @@ class CA:
         self.grid = np.zeros((width, height, 2))  # [water, sediment]
         self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height
 
+    # def grid_settings(self):
+    #     # Create a downward slope for sediment heights
+    #     for i in range(self.width):
+    #         for j in range(self.height):
+    #             self.grid[i, j, 1] = self.sed - j  # Regular downward slope for sediment
+
+    #     # Define the size of the water blob
+    #     water_blob_size = 5  # Size of the square water blob
+    #     start_row = 0
+    #     start_col = self.width // 2 - (water_blob_size // 2) # Center the blob horizontally
+
+    #     # Fill the top middle with water (square blob)
+    #     for j in range(water_blob_size):
+    #         self.grid[0, j + start_col, 0] = self.water
+
+    #     self.grid[0, self.width // 2, 0] = self.water
+    #     self.grid[0, self.width // 2 + 1, 0] = self.water
+    #     self.grid[0, self.width // 2 - 1, 0] = self.water
+    #     # for i in range(start_row, start_row + water_blob_size):
+    #     #     for j in range(start_col, start_col + water_blob_size):
+    #     #         if i < self.width and j < self.height:  # Ensure we don't go out of bounds
+    #     #             self.grid[i, j, 0] = self.water  # Fill with water
+
     def grid_settings(self):
         # Create a sloped terrain where sediment height decreases from top to bottom
         for i in range(self.width):
@@ -22,8 +45,8 @@ class CA:
         start_row = 0
         start_col = (self.width - water_blob_width) // 2  # Center the blob horizontally
 
-        for j in range(start_row, start_row + water_blob_height):
-            for i in range(start_col, start_col + water_blob_width):
+        for i in range(start_row, start_row + water_blob_height):
+            for j in range(start_col, start_col + water_blob_width):
                 if i < self.width and j < self.height:
                     self.grid[i, j, 0] = self.water  # Fill with water
 
