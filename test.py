@@ -16,6 +16,8 @@ class CA:
     #         for j in range(self.height):
     #             self.grid[i, j, 1] = self.sed - j  # Regular downward slope for sediment
 
+    #     for i in range(self.width)
+
     #     # Define the size of the water blob
     #     water_blob_size = 5  # Size of the square water blob
     #     start_row = 0
@@ -37,7 +39,7 @@ class CA:
         # Create a sloped terrain where sediment height decreases from top to bottom
         for i in range(self.width):
             for j in range(self.height):
-                self.grid[i, j, 1] = self.sed - (j * 0.1)  # Gradual slope downward
+                self.grid[i, j, 1] = self.sed - (i * 0.1)  # Gradual slope downward
 
         # Define a large water source blob at the top-center of the grid
         water_blob_width = self.width // 5  # Water blob spans 1/5 of the grid width
