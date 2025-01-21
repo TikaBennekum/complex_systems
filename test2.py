@@ -57,7 +57,7 @@ class CA:
                     if self.grid[i][j].water == 1:
                         frame[i, j] = [255, 0, 0]  # Blue for water
                     else:
-                        frame[i, j] = [42, 42, 120]  # Brown for no water
+                        frame[i, j] = [255, 255, 255]  # Brown for no water
 
             # Convert the frame to the required format and append
             frames.append(frame)
