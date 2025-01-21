@@ -41,6 +41,7 @@ class CA:
             for j in range(self.height):
                 self.grid[i, j, 1] = self.sed - (i * 0.1)  # Gradual slope downward
 
+
         # Define a large water source blob at the top-center of the grid
         water_blob_width = self.width // 5  # Water blob spans 1/5 of the grid width
         water_blob_height = self.height // 10  # Water blob height is 1/10th of the grid height
