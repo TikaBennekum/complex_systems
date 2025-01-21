@@ -108,6 +108,7 @@
           packages = [
             python
             pkgs.uv
+            pkgs.ffmpeg
           ];
           env =
             {
@@ -115,6 +116,8 @@
               UV_PYTHON_DOWNLOADS = "never";
               # Force uv to use nixpkgs Python interpreter
               UV_PYTHON = python.interpreter;
+
+              TERMINFO_DIRS = "/run/current-system/sw/share/terminfo";
             }
             // lib.optionalAttrs pkgs.stdenv.isLinux {
               # Python libraries often load native shared objects using dlopen(3).
@@ -188,6 +191,7 @@
             packages = [
               virtualenv
               pkgs.uv
+              pkgs.ffmpeg
             ];
 
             env = {
