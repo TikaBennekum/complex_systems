@@ -1,141 +1,115 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-class CA(object):
-
+class CA:
     def __init__(self, width, height, water, sed):
         self.width = width
         self.height = height
         self.water = water
         self.sed = sed
-        self.grid = np.zeros((width, height, 2))  # Third dimension: [water, sediment]
-        self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height for total elevation
+        self.grid = np.zeros((width, height, 2))  # [water, sediment]
+        self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height
 
     def grid_settings(self):
-        # Create a downward slope for sediment heights
+        # Create a sloped terrain where sediment height decreases from top to bottom
         for i in range(self.width):
             for j in range(self.height):
-                self.grid[i, j, 1] = self.sed - j  # Regular downward slope for sediment
+                self.grid[i, j, 1] = self.sed - (j * 0.1)  # Gradual slope downward
 
-        # Define the size of the water blob
-        water_blob_size = 5  # Size of the square water blob
+        # Define a large water source blob at the top-center of the grid
+        water_blob_width = self.width // 5  # Water blob spans 1/5 of the grid width
+        water_blob_height = self.height // 10  # Water blob height is 1/10th of the grid height
         start_row = 0
-        start_col = (self.width - water_blob_size) // 2  # Center the blob horizontally
+        start_col = (self.width - water_blob_width) // 2  # Center the blob horizontally
 
-        # Fill the top middle with water (square blob)
-        for j in range(start_row, start_row + water_blob_size):
-            for i in range(start_col, start_col + water_blob_size):
-                if i < self.width and j < self.height:  # Ensure we don't go out of bounds
+        for j in range(start_row, start_row + water_blob_height):
+            for i in range(start_col, start_col + water_blob_width):
+                if i < self.width and j < self.height:
                     self.grid[i, j, 0] = self.water  # Fill with water
-                
+
     def apply_rules(self, i, j):
         rows, cols, _ = self.grid.shape
         current_water = self.grid[i, j, 0]
         current_sediment = self.grid[i, j, 1]
         current_total = current_water + current_sediment
 
-        # Collect neighbors' total heights
         neighbors = []
-        for di, dj in [(0, -1), (0, 0), (0, 1)]:  # Left, center, right neighbors
+        indices = []
+        for di, dj in [(0, -1), (0, 1), (1, 0), (-1, 0)]:  # Left, right, down, up
             ni, nj = i + di, j + dj
             if 0 <= ni < rows and 0 <= nj < cols:
-                neighbors.append(self.total[ni, nj])  # Store total height of neighbors
+                neighbors.append(self.total[ni, nj])
+                indices.append((ni, nj))
 
-        # Ensure neighbors have been collected correctly
-        while len(neighbors) < 3:  # Ensure we have exactly 3 neighbors
-            neighbors.append(0)  # Append a height of 0 for missing neighbors
-
-        slopes = [(current_total - neighbors[0]),  # Left
-                (current_total - neighbors[1]),  # Center
-                (current_total - neighbors[2])]  # Right
-
+        slopes = [current_total - neighbor for neighbor in neighbors]
         positive_slopes = [slope for slope in slopes if slope > 0]
         zero_slopes = [slope for slope in slopes if slope == 0]
+        n = 0.5  # Exponent for slope calculation
 
         if positive_slopes:
-            # Route water according to positive slopes
-            total_positive_slope = sum(positive_slopes)
-            if total_positive_slope > 0:  # Ensure we don't divide by zero
-                Q0 = current_water  # Total discharge
-                for index, slope in enumerate(slopes):
-                    if slope > 0:  # Only route water to neighbors with positive slopes
-                        discharge = (slope / total_positive_slope) * Q0
-                        # Transfer water to the neighbor cell
-                        if index == 0:  # Left neighbor
-                            if j > 0:  # Ensure we don't go out of bounds
-                                current_water -= discharge
-                                self.grid[i, j - 1, 0] += discharge
-                        elif index == 1:  # Center neighbor
-                            # Optionally handle sediment transfer logic here if needed
-                            pass
-                        elif index == 2:  # Right neighbor
-                            if j < cols - 1:  # Ensure we don't go out of bounds
-                                current_water -= discharge
-                                self.grid[i, j + 1, 0] += discharge
+            # Route water based on positive slopes
+            total_positive_slope = sum(s**n for s in positive_slopes)
+            if total_positive_slope > 0:
+                for k, slope in enumerate(slopes):
+                    if slope > 0:
+                        proportion = (slope**n) / total_positive_slope
+                        discharge = current_water * proportion
+                        ni, nj = indices[k]
+                        self.grid[ni, nj, 0] += discharge
+                        current_water -= discharge
+
         elif zero_slopes:
-            # Distribute evenly to neighbors with zero slopes
+            # Evenly distribute water to neighbors with zero slopes
             num_zero_neighbors = len(zero_slopes)
             if num_zero_neighbors > 0:
-                Q0 = current_water / num_zero_neighbors
-                for index, slope in enumerate(slopes):
+                discharge = current_water / num_zero_neighbors
+                for k, slope in enumerate(slopes):
                     if slope == 0:
-                        if index == 0:  # Left neighbor
-                            if j > 0:  # Ensure we don't go out of bounds
-                                self.grid[i, j - 1, 0] += Q0
-                        elif index == 1:  # Center neighbor
-                            # Handle sediment logic here if needed
-                            pass
-                        elif index == 2:  # Right neighbor
-                            if j < cols - 1:  # Ensure we don't go out of bounds
-                                self.grid[i, j + 1, 0] += Q0
+                        ni, nj = indices[k]
+                        self.grid[ni, nj, 0] += discharge
+                current_water = 0
+
         else:
-            # All slopes are negative, distribute according to the formula
-            for index, slope in enumerate(slopes):
-                if index == 0:  # Left neighbor
-                    if slope < 0 and j > 0:
-                        self.grid[i, j - 1, 0] += current_water * (1 / (1 - slope ** 0.5))  # Example logic
-                elif index == 1:  # Center neighbor
-                    # You can decide how to handle center neighbor
-                    pass
-                elif index == 2:  # Right neighbor
-                    if slope < 0 and j < cols - 1:
-                        self.grid[i, j + 1, 0] += current_water * (1 / (1 - slope ** 0.5))  # Example logic
+            # Distribute to all neighbors using negative slopes
+            total_negative_slope = sum(abs(s)**-n for s in slopes if s < 0)
+            if total_negative_slope > 0:
+                for k, slope in enumerate(slopes):
+                    if slope < 0:
+                        proportion = (abs(slope)**-n) / total_negative_slope
+                        discharge = current_water * proportion
+                        ni, nj = indices[k]
+                        self.grid[ni, nj, 0] += discharge
+                        current_water -= discharge
 
-        # Return the new state of water and sediment
-        return max(0, current_water), current_sediment  # Ensure no negative values
-
+        self.grid[i, j, 0] = max(0, current_water)  # Ensure no negative water
+        return self.grid[i, j, 0], current_sediment
 
     def update_grid(self):
-        next_grid = np.copy(self.grid)  # Create a copy for updates
         rows, cols, _ = self.grid.shape
 
         for i in range(rows):
             for j in range(cols):
-                new_water, new_sediment = self.apply_rules(i, j)
-                next_grid[i, j, 0] = new_water
-                next_grid[i, j, 1] = new_sediment
+                self.apply_rules(i, j)
 
-        # Update the combined total height
-        self.total = next_grid[:, :, 0] + next_grid[:, :, 1]
-        return next_grid
+        self.total = self.grid[:, :, 0] + self.grid[:, :, 1]
 
     def run_simulation(self, num_epochs):
-        self.grid_settings()  # Initialize the grid
+        self.grid_settings()
         fig, ax = plt.subplots()
-        
+
         for generation in range(num_epochs):
-            self.grid = self.update_grid()  # Update the grid
-            
-            # Visualize total height (water + sediment)
-            img = ax.imshow(self.grid[:, :, 0] > 0, cmap='Blues', interpolation='nearest')  # Cells with water are blue
-            plt.title('Cellular Automaton Simulation')
+            self.update_grid()
+
+            # Visualization: water dynamics only
+            ax.clear()
+            ax.imshow(self.grid[:, :, 0], cmap='Blues', interpolation='nearest')
             ax.set_title(f'Generation: {generation}')
             plt.pause(0.1)
 
         plt.show()
 
 
-# Example usage with increased resolution and larger water blob
-width, height, water, sed = 100, 100, 50, 10  # Increased grid size and water amount
+# Example usage
+width, height, water, sed = 100, 100, 10, 50  # Larger water source and sloped terrain
 ca = CA(width, height, water, sed)
-ca.run_simulation(10)  # Increased the number of generations for better visualization
+ca.run_simulation(20)
