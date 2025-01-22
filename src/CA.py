@@ -136,25 +136,6 @@ class CA:
                 slopes.append(slope)
         return indices,slopes
 
-    def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
-        neighbors: list[tuple[float,float]] = []
-        indices: list[tuple[int, int]] = []
-        slopes: list[float] = []
-
-        # Collect neighbors and calculate slopes
-        for di, dj in ALL_NEIGHBORS:
-            ni, nj = i + di, j + dj
-            if 0 <= ni < self.height and 0 <= nj < self.width:
-                neighbor = previous_grid[ni][nj]
-                neighbors.append(neighbor)
-                indices.append((ni, nj))
-                # Calculate slope to the neighbor
-                distance = np.sqrt(di**2 + dj**2)
-                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
-                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
-                slopes.append(slope)
-        return indices,slopes
-
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
