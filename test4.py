@@ -17,7 +17,7 @@ class CA:
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_present = 1
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
-            
+
     def apply_rules(self, i, j, previous_grid):
         """Apply the water flow rules based on the previous grid state."""
         current_cell = self.grid[i][j]
@@ -97,16 +97,23 @@ class CA:
         for generation in range(num_epochs):
             self.update_grid()
 
-            # Create a frame for the video showing water presence and height
+            # Create a frame for the video showing water height
             frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+
+            max_water_height = max(cell.water_height for row in self.grid for cell in row)
+            if max_water_height == 0:
+                max_water_height = 1  # Avoid division by zero
 
             for i in range(self.height):
                 for j in range(self.width):
-                    # Display water as blue and non-water as brown
-                    if self.grid[i][j].water_present == 1:
-                        frame[i, j] = [255, 0, 0]  # Blue for water
+                    cell = self.grid[i][j]
+                    if cell.water_present == 1:
+                        # Lighter blue intensity proportional to water height
+                        intensity = min(255, max(0, int(self.grid[i][j].water_height * 5)))  # Scale and clamp intensity
+                        frame[i, j] = [intensity, 255 - intensity, 255]  # Light blue gradient
+
                     else:
-                        frame[i, j] = [255, 255, 255]  # Brown for no water
+                        frame[i, j] = [255, 255, 255]  # Light brown for no water
 
             # Append the frame for the video
             frames.append(frame)
@@ -121,6 +128,7 @@ class CA:
             print(f"Simulation saved to {output_file}")
         else:
             print("No frames to save!")
+
 
 
 # Example usage

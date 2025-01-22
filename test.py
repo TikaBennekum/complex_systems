@@ -3,19 +3,19 @@ import numpy as np
 import cv2
 
 class CA:
-    def __init__(self, width, height, water, sed):
+    def __init__(self, width, height, water, ground_height):
         self.width = width
         self.height = height
-        self.water = water
-        self.sed = sed
-        self.grid = np.zeros((width, height, 2))  # [water, sediment]
+        self.water = water # 1: water, 0: not water
+        self.ground_height = ground_height
+        self.grid = np.zeros((width, height))
         self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height
 
     def grid_settings(self):
-        # Create a sloped terrain where sediment height decreases from top to bottom
+        # Create a sloped terrain where ground_heightiment height decreases from top to bottom
         for i in range(self.width):
             for j in range(self.height):
-                self.grid[i, j, 1] = self.sed - (i * 0.1)  # Gradual slope downward
+                self.grid[i, j, 1] = self.ground_height - (i * 0.1)  # Gradual slope downward
 
 
         # Define a large water source blob at the top-center of the grid
@@ -32,8 +32,8 @@ class CA:
     def apply_rules(self, i, j):
         rows, cols, _ = self.grid.shape
         current_water = self.grid[i, j, 0]
-        current_sediment = self.grid[i, j, 1]
-        current_total = current_water + current_sediment
+        current_ground_heightiment = self.grid[i, j, 1]
+        current_total = current_water + current_ground_heightiment
 
         neighbors = []
         indices = []
@@ -49,7 +49,7 @@ class CA:
         n = 0.5  # Exponent for slope calculation
 
         if positive_slopes:
-            # Route water based on positive slopes
+            # Route water baground_height on positive slopes
             total_positive_slope = sum(s**n for s in positive_slopes)
             if total_positive_slope > 0:
                 for k, slope in enumerate(slopes):
@@ -84,7 +84,7 @@ class CA:
                         current_water -= discharge
 
         self.grid[i, j, 0] = max(0, current_water)  # Ensure no negative water
-        return self.grid[i, j, 0], current_sediment
+        return self.grid[i, j, 0], current_ground_heightiment
 
     def update_grid(self):
         rows, cols, _ = self.grid.shape
@@ -117,7 +117,7 @@ class CA:
 
 
 # Example usage
-width, height, water, sed = 100, 100, 10, 50  # Larger water source and sloped terrain
+width, height, water, ground_height = 100, 100, 10, 50  # Larger water source and sloped terrain
 output_file = 'videos/water_simulation.mp4'  # Output video file
-ca = CA(width, height, water, sed)
+ca = CA(width, height, water, ground_height)
 ca.run_simulation(50, output_file)
