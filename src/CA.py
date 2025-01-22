@@ -1,16 +1,26 @@
 import numpy as np
 import cv2
+from noise import pnoise2
+
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+
 class Cell:
     def __init__(self, water_height=0, ground_height=0):
         self.ground_height = ground_height  # Ground height in the cell
         self.water_height = water_height  # Height of the water in the cell
 
-def visualise_heigth(grid):
+def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
     for row in grid:
-        heights = [cell.ground_height for cell in row]  # Extract ground heights for each cell in the row
+        heights = [np.round(cell.ground_height, 2).item() for cell in row]  # Extract ground heights for each cell in the row
         print(heights)
+
+def perlin_noise(width, height):
+    noise_map = np.zeros((width, height))
+    for i in range(width):
+        for j in range(height):
+            noise_map[i][j] = pnoise2(i / 10, j / 10, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=width, repeaty=height, base=42)
+    return noise_map
 
 class CA:
     
@@ -18,8 +28,10 @@ class CA:
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
-        self.grid = [[Cell(ground_height=ground_height - (i * 0.1) + np.random.uniform(0, 0.2)) for _ in range(width)] for i in range(height)]
-        visualise_heigth(self.grid)
+        noise_map = perlin_noise(self.width, self.height)
+        self.grid = [[Cell(ground_height=ground_height - (i * 0.1) + noise_map[i][j]) for j in range(width)] for i in range(height)]
+        visualise_height(self.grid)
+
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
             
