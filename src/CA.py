@@ -1,11 +1,12 @@
 import numpy as np
 import cv2
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-class Cell:
-    def __init__(self, water_height=0, ground_height=0):
-        self.ground_height = ground_height  # Ground height in the cell
-        self.water_height = water_height  # Height of the water in the cell
+EROSION_CONSTANT = 0.1
 
+
+NUM_CELL_FLOATS = 2
+GROUND_HEIGHT = 0
+WATER_HEIGHT = 1
 
 class CA:
     
@@ -13,16 +14,19 @@ class CA:
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
-        self.grid = [[Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)] for i in range(height)]
+        self.grid = np.zeros([height, width, NUM_CELL_FLOATS])
+        height_gradient = np.linspace(ground_height, 0, height)
+        for i in range(height):
+            self.grid[i, :, GROUND_HEIGHT] = height_gradient[i]
         # Set the center cell at the top row with some water
-        self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
+        self.grid[0, width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
             
-    def apply_rules(self, i: int, j: int, previous_grid: list[list[Cell]]):
+    def apply_rules(self, i: int, j: int, previous_grid):
         """Apply the water flow rules based on the previous grid state."""
         current_cell = self.grid[i][j]
         previous_cell = previous_grid[i][j]
 
-        if previous_cell.water_height == 0:
+        if previous_cell[WATER_HEIGHT] == 0:
             return  # Skip cells without water
 
         neighbors = []
@@ -38,8 +42,8 @@ class CA:
                 indices.append((ni, nj))
                 # Calculate slope to the neighbor
                 distance = np.sqrt(di**2 + dj**2)
-                slope = (previous_cell.ground_height + previous_cell.water_height -
-                        (neighbor.ground_height + neighbor.water_height)) / distance
+                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
+                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
                 slopes.append(slope)
 
         # Distribute water based on slopes
@@ -48,21 +52,22 @@ class CA:
             for idx, slope in enumerate(slopes):
                 if slope > 0:
                     proportion = slope / total_positive_slope
-                    discharge = previous_cell.water_height * proportion
+                    discharge = previous_cell[WATER_HEIGHT] * proportion
                     ni, nj = indices[idx]
-                    self.grid[ni][nj].water_height += discharge
-                    current_cell.water_height -= discharge
+                    self.grid[ni][nj][WATER_HEIGHT] += discharge
+                    current_cell[WATER_HEIGHT] -= discharge
+                    current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
                     
 
         # If no positive slopes, distribute water evenly to zero-slope neighbors
         elif 0 in slopes:
             zero_slope_indices = [idx for idx, slope in enumerate(slopes) if slope == 0]
             if zero_slope_indices:
-                discharge = previous_cell.water_height / len(zero_slope_indices)
+                discharge = previous_cell[WATER_HEIGHT] / len(zero_slope_indices)
                 for idx in zero_slope_indices:
                     ni, nj = indices[idx]
-                    self.grid[ni][nj].water_height += discharge
-                current_cell.water_height -= discharge * len(zero_slope_indices)
+                    self.grid[ni][nj][WATER_HEIGHT] += discharge
+                current_cell[WATER_HEIGHT] -= discharge * len(zero_slope_indices)
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
         else:
@@ -71,16 +76,15 @@ class CA:
                 for idx, slope in enumerate(slopes):
                     if slope < 0:
                         proportion = abs(slope) / total_negative_slope
-                        discharge = previous_cell.water_height * proportion
+                        discharge = previous_cell[WATER_HEIGHT] * proportion
                         ni, nj = indices[idx]
-                        self.grid[ni][nj].water_height += discharge
-                        current_cell.water_height -= discharge
+                        self.grid[ni][nj][WATER_HEIGHT] += discharge
+                        current_cell[WATER_HEIGHT] -= discharge
 
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
-        previous_grid = [[Cell(water_height=cell.water_height, ground_height=cell.ground_height)
-                          for cell in row] for row in self.grid]
+        previous_grid = self.grid.copy()
 
         # Apply the rules to update the current grid based on the previous state
         for i in range(self.height):
@@ -104,15 +108,19 @@ class CA:
             self.update_grid()
 
             # Create a frame for the video showing water presence and height
-            frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+            frame = np.zeros((self.height, 2*self.width, 3), dtype=np.uint8)
 
             for i in range(self.height):
                 for j in range(self.width):
                     # Display water as blue and non-water as brown
-                    if self.grid[i][j].water_height > 0:
+                    h_range = np.max(self.grid[:,:,GROUND_HEIGHT]) - np.min(self.grid[:,:,GROUND_HEIGHT])
+                    frame[i, self.width + j] = [0,0, int(255/h_range*self.grid[i][j][GROUND_HEIGHT])] 
+                    if self.grid[i][j][WATER_HEIGHT] > 0:
                         frame[i, j] = [255, 0, 0]  # Blue for water
+                        
+
                     else:
-                        frame[i, j] = [255, 255, 255]  # Brown for no water
+                        frame[i, j] = [0,0,0]  # Brown for no water
 
             # Optionally resize the frame for a larger display window
             if show_live and window_scale != 1:
