@@ -2,15 +2,20 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 import cv2
+from dataclasses import dataclass
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+
+@dataclass
 class Cell:
-    def __init__(self, water_height: float=0, ground_height: float=0):
-        self.ground_height = ground_height  # Ground height in the cell
-        self.water_height = water_height  # Height of the water in the cell
+    ground_height: float = 0.0
+    water_height: float = 0.0
+    # def __init__(self, water_height: float=0, ground_height: float=0):
+    #     self.ground_height = ground_height  # Ground height in the cell
+    #     self.water_height = water_height  # Height of the water in the cell
 
 
 class CA:
-    
     def __init__(self, width: int, height: int, ground_height: int):
         self.width = width
         self.height = height
@@ -92,6 +97,26 @@ class CA:
         for i in range(self.height):
             for j in range(self.width):
                 self.apply_rules(i, j, previous_grid)
+    
+    def run_output_last_state(self, num_epochs: int, save_to: None|str = None):
+        """Run the simulation for a number of epochs, return last state."""
+        for _ in range(num_epochs):
+            self.update_grid()
+
+        if save_to:
+            with open("videos/output.txt", "w") as file:
+                for number, row in enumerate(self.grid):
+                    file.write(f"Line {number} of {len(self.grid) - 1}\n")
+                    for cell in row:
+                        file.write(f"    ({cell.water_height}, {cell.ground_height})\n")
+        else:
+            output_string = ""
+            for number, row in enumerate(self.grid):
+                output_string += f"Line {number} of {len(self.grid) - 1}\n"
+                for cell in row:
+                    output_string += f"    ({cell.water_height}, {cell.ground_height})\n"
+        return output_string
+
 
     def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
         """
@@ -153,3 +178,7 @@ class CA:
             print(f"Simulation saved to {output_file}")
         elif not frames:
             print("No frames to save!")
+
+if __name__ == '__main__':
+    system = CA(20, 40, 5)
+    system.run_output_last_state(100, save_to="videos/output.txt")
