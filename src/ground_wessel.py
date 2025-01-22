@@ -4,6 +4,7 @@ from numpy.dtypes import StringDType
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 from numba import jit
+from random import random
 
 import matplotlib
 import imageio_ffmpeg
@@ -12,9 +13,9 @@ matplotlib.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 ### CONSTANTS
-L = 5
+L = 3
 FLOW_FRACTION = 0.010  # maximum fraction of water which can flow out of cell
-FRAMES = 1
+FRAMES = 100
 
 
 ### LAYERS
@@ -32,30 +33,38 @@ def spread_water(
 ) -> tuple[NDArray, NDArray]:
     change_in_water_level = np.zeros_like(water_level)
     change_in_ground_level = np.zeros_like(water_level)
-    # use the absolute value for flow to indicate the flux of the water, even when level
-    # stays constant
+    # use the absolute value for flow to indicate the flux of the water, 
+    # even when level stays constant
     flow = np.zeros_like(water_level)
     total_height = water_level + ground_level
+    print(water_level)
+    print(ground_level)
+    print()
 
     for i in range(water_level.size):
         x, y = i % water_level.shape[0], i // water_level.shape[1]
-        height_delta = np.zeros((3, 3))
-        neighbour_amount = 0
+        # height_delta = np.zeros((3, 3))
+        # neighbour_amount = 0
         for other_x, other_y in donut_mask(x, y):
             if not (0 <= other_x < water_level.shape[0]) or not (
                 0 <= other_y < water_level.shape[1]
             ):
                 continue
-            neighbour_amount += 1
-            height_delta[other_x - x, other_y - y] = (
-                total_height[other_x, other_y] - total_height[x, y]
-            )
-
-        total_delta = height_delta.sum()
-        # use the absolute value for flow to indicate the flux of the water, even when level
-        # stays constant
-        flow[x, y] = abs(total_delta * FLOW_FRACTION)
-        change_in_water_level[x, y] = total_delta * FLOW_FRACTION
+            # neighbour_amount += 1
+            # height_delta[other_x - x + 1, other_y - y + 1] = (
+            #     water_level[other_x, other_y] - water_level[x, y]
+            #     # total_height[other_x, other_y] - total_height[x, y]
+            # )
+            change_in_water_level[other_x, other_y] += determine_water_flow(water_level[x, y], ground_level[x, y], water_level[other_x, other_y], ground_level[other_x, other_y], constant=FLOW_FRACTION)
+        # print("For "+str(x)+", "+str(y)+": height_delta = ")
+        # print(height_delta)
+        # print()
+        # total_delta = height_delta.sum()
+        # use the absolute value for flow to indicate the flux of the water, 
+        # even when level stays constant
+        # flow[x, y] = abs(total_delta * FLOW_FRACTION)
+        # change_in_water_level[x, y] = total_delta * FLOW_FRACTION
+    print(change_in_water_level)
 
     return water_level + change_in_water_level, ground_level + change_in_ground_level
 
@@ -75,6 +84,27 @@ def donut_mask(x, y):
     return mask
 
 
+@jit 
+def cap(value, at):
+    if value > at:
+        return at 
+    return value 
+
+
+@jit 
+def abs_cap(value, at):
+    if abs(value) > abs(at):
+        return at 
+    return value 
+
+
+@jit 
+def lower_cap(value, at):
+    if value < at:
+        return at 
+    return value 
+
+
 @jit
 def run_simulation(water_level: NDArray, ground_level: NDArray, steps):
     history = [(water_level, ground_level)]
@@ -84,6 +114,50 @@ def run_simulation(water_level: NDArray, ground_level: NDArray, steps):
         # save results
         history.append((water_level, ground_level))
     return history
+
+
+@jit 
+def determine_water_flow(water_self: float, ground_self: float, water_other: float, ground_other: float, constant: float) -> float:
+    """Outflow if negative, inflow when positive."""
+    return cap(
+        lower_cap(
+            (water_self + ground_self) - (water_other + ground_other), -water_other), 
+            water_self
+        ) * constant
+
+
+
+@jit 
+def test_water_flow(iterations: int):
+    for _ in range(iterations):
+        water_self   = random() * 10.0
+        water_other  = random() * 10.0
+        ground_self  = random() * 10.0
+        ground_other = random() * 10.0
+
+        water_before = water_self + water_other
+        ground_before = ground_self + ground_other
+
+        self_to_other = determine_water_flow(water_self, ground_self, water_other, ground_other, 1.0)
+        other_to_self = determine_water_flow(water_other, ground_other, water_self, ground_self, 1.0)
+
+        def debug_print():
+            print("water_self:    ", water_self)
+            print("ground_self:   ", ground_self)
+            print("height_self:   ", water_self + ground_self)
+            print("water_other:   ", water_other)
+            print("ground_other:  ", ground_other)
+            print("height_other:  ", water_other + ground_other)
+            print("water_before:  ", water_before)
+            print("ground_before: ", ground_before)
+            print("self_to_other: ", self_to_other)
+            print("other_to_self: ", other_to_self)
+
+        assert self_to_other == - other_to_self, debug_print()
+        assert not self_to_other > water_self, debug_print()
+        assert not other_to_self > water_other, debug_print()
+    print("Water flow test passed.")
+
 
 
 ### PLOTTING
@@ -105,6 +179,7 @@ def plot_in_3d(history):
 
 
 def animate_in_3d(history):
+    # print(history[-1][0])
     # matplotlib 3d boilerplate
     fig = plt.figure()
     ax = fig.add_subplot(projection="3d")
@@ -191,7 +266,7 @@ def animate_in_3d(history):
         return bars
 
     animation = anim.FuncAnimation(
-        fig=fig, func=update, frames=len(history), fargs=(bars,), interval=1 / 60 * 1000
+        fig=fig, func=update, frames=len(history), fargs=(bars,), interval=100#1 / 60 * 1000
     )
     animation.save("videos/wessels_ground.mp4")
     plt.close()
@@ -199,5 +274,6 @@ def animate_in_3d(history):
 
 if __name__ == "__main__":
     # history = run_simple(water_level, 120)
+    test_water_flow(100000)
     history = run_simulation(water_level, ground_level, FRAMES)
     animate_in_3d(history)
