@@ -90,8 +90,17 @@ class CA:
             for j in range(self.width):
                 self.apply_rules(i, j, previous_grid)
 
-    def run_simulation(self, num_epochs, output_file):
-        """Run the simulation for a number of epochs and save the results as a video."""
+    def run_simulation(self, num_epochs, output_file=None, show_live=True, window_scale=5):
+        """
+        Run the simulation for a number of epochs, display it live, 
+        and optionally save the results as a video.
+        
+        Args:
+            num_epochs (int): Number of epochs to run the simulation.
+            output_file (str): File path to save the video (optional).
+            show_live (bool): Whether to display the simulation live.
+            window_scale (float): Scale factor for the display window size (e.g., 2.0 for 2x size).
+        """
         frames = []  # Store frames for video
 
         for generation in range(num_epochs):
@@ -108,23 +117,45 @@ class CA:
                     else:
                         frame[i, j] = [255, 255, 255]  # Brown for no water
 
-            # Append the frame for the video
+            # Optionally resize the frame for a larger display window
+            if show_live and window_scale != 1:
+                scaled_size = (int(frame.shape[1] * window_scale), int(frame.shape[0] * window_scale))
+                display_frame = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_LINEAR)
+            else:
+                display_frame = frame
+
+            # Optionally show the simulation live
+            if show_live:
+                cv2.imshow("Simulation", display_frame)
+                # Wait for a short period to control the frame rate
+                # and allow the user to exit the simulation by pressing 'q'
+                if cv2.waitKey(100) & 0xFF == ord('q'):
+                    print("Simulation interrupted by user.")
+                    break
+
+            # Append the original frame for the video
             frames.append(frame)
 
-        # Save all frames as a video
-        if frames:
+        # Close the display window
+        if show_live:
+            cv2.destroyAllWindows()
+
+        # Save all frames as a video if output_file is provided
+        if output_file and frames:
             height, width, _ = frames[0].shape
             out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
             for frame in frames:
                 out.write(frame)
             out.release()
             print(f"Simulation saved to {output_file}")
-        else:
+        elif not frames:
             print("No frames to save!")
+
+
 
 
 # Example usage
 width, height, ground_height = 100, 100, 50
 output_file = 'videos/water_simulation.mp4'
 ca = CA(width, height, ground_height)
-ca.run_simulation(60, output_file)
+ca.run_simulation(100)
