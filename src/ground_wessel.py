@@ -13,8 +13,8 @@ matplotlib.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 ### CONSTANTS
-L = 3
-FLOW_FRACTION = 0.010  # maximum fraction of water which can flow out of cell
+L = 20
+FLOW_FRACTION = 1/8.0  # maximum fraction of water which can flow out of cell
 FRAMES = 100
 
 
@@ -23,7 +23,7 @@ water_level = np.zeros([L, L])
 water_level[L // 2, L // 2] = 10.0
 ground_level = np.ones_like(water_level)
 for i in range(ground_level.shape[0]):
-    ground_level[i, :] *= i + 1
+    ground_level[i, :] *= ground_level.shape[0] - i
 
 
 ### FUNCTIONS
@@ -37,9 +37,9 @@ def spread_water(
     # even when level stays constant
     flow = np.zeros_like(water_level)
     total_height = water_level + ground_level
-    print(water_level)
-    print(ground_level)
-    print()
+    # print(water_level)
+    # print(ground_level)
+    # print()
 
     for i in range(water_level.size):
         x, y = i % water_level.shape[0], i // water_level.shape[1]
@@ -64,7 +64,7 @@ def spread_water(
         # even when level stays constant
         # flow[x, y] = abs(total_delta * FLOW_FRACTION)
         # change_in_water_level[x, y] = total_delta * FLOW_FRACTION
-    print(change_in_water_level)
+    # print(change_in_water_level)
 
     return water_level + change_in_water_level, ground_level + change_in_ground_level
 
