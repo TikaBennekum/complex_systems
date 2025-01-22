@@ -6,6 +6,11 @@ class Cell:
         self.ground_height = ground_height  # Ground height in the cell
         self.water_height = water_height  # Height of the water in the cell
 
+def visualise_heigth(grid):
+    """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
+    for row in grid:
+        heights = [cell.ground_height for cell in row]  # Extract ground heights for each cell in the row
+        print(heights)
 
 class CA:
     
@@ -13,7 +18,8 @@ class CA:
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
-        self.grid = [[Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)] for i in range(height)]
+        self.grid = [[Cell(ground_height=ground_height - (i * 0.1) + np.random.uniform(0, 0.2)) for _ in range(width)] for i in range(height)]
+        visualise_heigth(self.grid)
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
             
