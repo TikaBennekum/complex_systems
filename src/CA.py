@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from noise import pnoise2
 
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-EROSION_CONSTANT = 0.1
+
+EROSION_CONSTANT = 0.01
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -56,15 +57,14 @@ class CA:
             self.grid[i, :, GROUND_HEIGHT] = height_gradient[i]
 
         self.grid[:,:,GROUND_HEIGHT] += perlin_noise(self.width, self.height, 5)
-
-        # noise_map = perlin_noise(self.width, self.height, 5)
-        # self.grid = [[Cell(ground_height=ground_height - (i * 0.1) + noise_map[i][j]) for j in range(width)] for i in range(height)]
-        # visualise_height(self.grid)
-
+        self.enforce_boundary
+        
+    def enforce_boundary(self):        
         # Set the center cell at the top row with some water
-        self.grid[0, width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
+        self.grid[0, self.width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
+        
             
-    def apply_rules(self, i: int, j: int, previous_grid):
+    def apply_rules(self, i: int, j: int, previous_grid: NDArray):
         """Apply the water flow rules based on the previous grid state."""
         current_cell = self.grid[i][j]
         previous_cell = previous_grid[i][j]
@@ -95,6 +95,7 @@ class CA:
                 for idx in zero_slope_indices:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
+                    current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
                 current_cell[WATER_HEIGHT] -= discharge * len(zero_slope_indices)
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
@@ -108,6 +109,7 @@ class CA:
                         ni, nj = indices[idx]
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
                         current_cell[WATER_HEIGHT] -= discharge
+                        current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
 
     def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
         neighbors: list[NDArray] = []
@@ -150,6 +152,7 @@ class CA:
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
+        self.enforce_boundary()
         previous_grid = self.grid.copy()
 
         # Apply the rules to update the current grid based on the previous state
@@ -200,7 +203,7 @@ class CA:
                 for j in range(self.width):
                     # Display water as blue and non-water as brown
                     h_range = np.max(self.grid[:,:,GROUND_HEIGHT]) - np.min(self.grid[:,:,GROUND_HEIGHT])
-                    frame[i, self.width + j] = [0,0, int(255/h_range*self.grid[i][j][GROUND_HEIGHT])] 
+                    frame[i, self.width + j] = [0,0, int(255/h_range*(self.grid[i][j][GROUND_HEIGHT] - np.min(self.grid[:,:,GROUND_HEIGHT])))] 
                     if self.grid[i][j][WATER_HEIGHT] > 0:
                         frame[i, j] = [255, 0, 0]  # Blue for water
                         
