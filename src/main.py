@@ -1,21 +1,20 @@
 import numpy as np
 import cv2
-
+ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 class Cell:
-    def __init__(self, water_present=0, water_height=0, ground_height=0):
+    def __init__(self, water_height=0, ground_height=0):
         self.ground_height = ground_height  # Ground height in the cell
-        self.water_present = water_present  # 1: water present, 0: no water
         self.water_height = water_height  # Height of the water in the cell
 
 
 class CA:
+    
     def __init__(self, width, height, ground_height):
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
         self.grid = [[Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)] for i in range(height)]
         # Set the center cell at the top row with some water
-        self.grid[0][width // 2].water_present = 1
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
             
     def apply_rules(self, i, j, previous_grid):
@@ -31,7 +30,7 @@ class CA:
         slopes = []
 
         # Collect neighbors and calculate slopes
-        for di, dj in [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
+        for di, dj in ALL_NEIGHBORS:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.height and 0 <= nj < self.width:
                 neighbor = previous_grid[ni][nj]
@@ -51,9 +50,9 @@ class CA:
                     proportion = slope / total_positive_slope
                     discharge = previous_cell.water_height * proportion
                     ni, nj = indices[idx]
-                    self.grid[ni][nj].water_present = 1
                     self.grid[ni][nj].water_height += discharge
                     current_cell.water_height -= discharge
+                    
 
         # If no positive slopes, distribute water evenly to zero-slope neighbors
         elif 0 in slopes:
@@ -62,7 +61,6 @@ class CA:
                 discharge = previous_cell.water_height / len(zero_slope_indices)
                 for idx in zero_slope_indices:
                     ni, nj = indices[idx]
-                    self.grid[ni][nj].water_present = 1
                     self.grid[ni][nj].water_height += discharge
                 current_cell.water_height -= discharge * len(zero_slope_indices)
 
@@ -75,14 +73,13 @@ class CA:
                         proportion = abs(slope) / total_negative_slope
                         discharge = previous_cell.water_height * proportion
                         ni, nj = indices[idx]
-                        self.grid[ni][nj].water_present = 1
                         self.grid[ni][nj].water_height += discharge
                         current_cell.water_height -= discharge
 
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
-        previous_grid = [[Cell(water_present=cell.water_present, water_height=cell.water_height, ground_height=cell.ground_height)
+        previous_grid = [[Cell(water_height=cell.water_height, ground_height=cell.ground_height)
                           for cell in row] for row in self.grid]
 
         # Apply the rules to update the current grid based on the previous state
@@ -103,7 +100,7 @@ class CA:
             for i in range(self.height):
                 for j in range(self.width):
                     # Display water as blue and non-water as brown
-                    if self.grid[i][j].water_present == 1:
+                    if self.grid[i][j].water_height > 0:
                         frame[i, j] = [255, 0, 0]  # Blue for water
                     else:
                         frame[i, j] = [255, 255, 255]  # Brown for no water
