@@ -1,8 +1,10 @@
+from typing import Any
 import numpy as np
+from numpy.typing import NDArray
 import cv2
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 class Cell:
-    def __init__(self, water_height=0, ground_height=0):
+    def __init__(self, water_height: float=0, ground_height: float=0):
         self.ground_height = ground_height  # Ground height in the cell
         self.water_height = water_height  # Height of the water in the cell
 
@@ -61,10 +63,10 @@ class CA:
                         self.grid[ni][nj].water_height += discharge
                         current_cell.water_height -= discharge
 
-    def create_indices_slopes(self, i, j, previous_grid, previous_cell):
-        neighbors = []
-        indices = []
-        slopes = []
+    def create_indices_slopes(self, i: int, j: int, previous_grid: list[list[Cell]], previous_cell: Cell) -> tuple[list[tuple[int, int]], list[float]]:
+        neighbors: list[Cell] = []
+        indices: list[tuple[int, int]] = []
+        slopes: list[float] = []
 
         # Collect neighbors and calculate slopes
         for di, dj in ALL_NEIGHBORS:
@@ -102,9 +104,9 @@ class CA:
             show_live (bool): Whether to display the simulation live.
             window_scale (float): Scale factor for the display window size (e.g., 2.0 for 2x size).
         """
-        frames = []  # Store frames for video
+        frames: list[NDArray[Any]] = []  # Store frames for video
 
-        for generation in range(num_epochs):
+        for _ in range(num_epochs):
             self.update_grid()
 
             # Create a frame for the video showing water presence and height
@@ -144,7 +146,7 @@ class CA:
         # Save all frames as a video if output_file is provided
         if output_file and frames:
             height, width, _ = frames[0].shape
-            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
+            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))  # type: ignore
             for frame in frames:
                 out.write(frame)
             out.release()
