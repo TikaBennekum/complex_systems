@@ -9,7 +9,7 @@ ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
 EROSION_CONSTANT = 0.0001
-EROSION_EXPONENT = 2.5
+EROSION_EXPONENT = 1 #2.5
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -115,7 +115,7 @@ class CA:
                         
                         
     def erosion_rule(self, K, Q, S=1, C=3):
-        return K*(Q*S)**EROSION_EXPONENT
+        return K*(Q*(S+ C))**EROSION_EXPONENT
 
     def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
         neighbors: list[NDArray] = []
