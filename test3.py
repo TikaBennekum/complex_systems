@@ -17,71 +17,67 @@ class CA:
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_present = 1
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
-
+            
     def apply_rules(self, i, j, previous_grid):
         """Apply the water flow rules based on the previous grid state."""
         current_cell = self.grid[i][j]
         previous_cell = previous_grid[i][j]
+
+        if previous_cell.water_height == 0:
+            return  # Skip cells without water
+
         neighbors = []
         indices = []
         slopes = []
-        
+
         # Collect neighbors and calculate slopes
-        for di, dj in [(0, -1), (0, 1), (1, 0), (-1, 0)]:  # Left, right, down, up
+        for di, dj in [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.height and 0 <= nj < self.width:
-                neighbors.append(previous_grid[ni][nj])
+                neighbor = previous_grid[ni][nj]
+                neighbors.append(neighbor)
                 indices.append((ni, nj))
-                # Calculate the slope to each neighbor (elevation difference)
-                if di == 0 and dj == 0:
-                    slopes.append(0)  # No slope to itself
-                else:
-                    slope = (previous_cell.ground_height - previous_grid[ni][nj].ground_height) / np.sqrt(di**2 + dj**2)
-                    slopes.append(slope)
+                # Calculate slope to the neighbor
+                distance = np.sqrt(di**2 + dj**2)
+                slope = (previous_cell.ground_height + previous_cell.water_height -
+                        (neighbor.ground_height + neighbor.water_height)) / distance
+                slopes.append(slope)
 
-        # Rule 1: Water flows downhill into neighbors with positive slope
-        positive_slopes = [s for s in slopes if s > 0]
-        if positive_slopes:
-            # Route water to neighbors with positive slopes based on the magnitude of the slope
-            total_positive_slope = sum(s**0.5 for s in positive_slopes)  # n = 0.5 as default
+        # Distribute water based on slopes
+        total_positive_slope = sum(s for s in slopes if s > 0)
+        if total_positive_slope > 0:
             for idx, slope in enumerate(slopes):
                 if slope > 0:
-                    proportion = (slope**0.5) / total_positive_slope
+                    proportion = slope / total_positive_slope
                     discharge = previous_cell.water_height * proportion
                     ni, nj = indices[idx]
-                    # Only add water if discharge > 0 (no water is added if there's no flow)
-                    if discharge > 0:
-                        self.grid[ni][nj].water_present = 1
-                        self.grid[ni][nj].water_height += discharge
-                        current_cell.water_height -= discharge  # Decrease water from the current cell
-        # Rule 2: If none of the slopes are positive but at least one is zero, distribute water evenly
+                    self.grid[ni][nj].water_present = 1
+                    self.grid[ni][nj].water_height += discharge
+                    current_cell.water_height -= discharge
+
+        # If no positive slopes, distribute water evenly to zero-slope neighbors
         elif 0 in slopes:
-            zero_slopes_indices = [idx for idx, slope in enumerate(slopes) if slope == 0]
-            if zero_slopes_indices:
-                # Evenly distribute the water to neighbors with zero slope
-                num_zero_slopes = len(zero_slopes_indices)
-                if num_zero_slopes > 0:
-                    discharge = previous_cell.water_height / num_zero_slopes
-                    for idx in zero_slopes_indices:
-                        ni, nj = indices[idx]
-                        # Only add water if discharge > 0 (no water is added if there's no flow)
-                        if discharge > 0:
-                            self.grid[ni][nj].water_present = 1
-                            self.grid[ni][nj].water_height += discharge
-                    current_cell.water_height -= discharge * num_zero_slopes  # Decrease water from the current cell
-        # Rule 3: If all slopes are negative, distribute water proportionally to the slopes
-        else:
-            total_negative_slope = sum(abs(s)**-0.5 for s in slopes if s < 0)  # n = -0.5 for negative slopes
-            for idx, slope in enumerate(slopes):
-                if slope < 0:
-                    proportion = (abs(slope)**-0.5) / total_negative_slope
-                    discharge = previous_cell.water_height * proportion
+            zero_slope_indices = [idx for idx, slope in enumerate(slopes) if slope == 0]
+            if zero_slope_indices:
+                discharge = previous_cell.water_height / len(zero_slope_indices)
+                for idx in zero_slope_indices:
                     ni, nj = indices[idx]
-                    # Only add water if discharge > 0 (no water is added if there's no flow)
-                    if discharge > 0:
+                    self.grid[ni][nj].water_present = 1
+                    self.grid[ni][nj].water_height += discharge
+                current_cell.water_height -= discharge * len(zero_slope_indices)
+
+        # If all slopes are negative, distribute water proportionally to their magnitudes
+        else:
+            total_negative_slope = sum(abs(s) for s in slopes if s < 0)
+            if total_negative_slope > 0:
+                for idx, slope in enumerate(slopes):
+                    if slope < 0:
+                        proportion = abs(slope) / total_negative_slope
+                        discharge = previous_cell.water_height * proportion
+                        ni, nj = indices[idx]
                         self.grid[ni][nj].water_present = 1
                         self.grid[ni][nj].water_height += discharge
-                    current_cell.water_height -= discharge  # Decrease water from the current cell
+                        current_cell.water_height -= discharge
 
     def update_grid(self):
         """Update the grid based on the previous state."""
@@ -131,4 +127,4 @@ class CA:
 width, height, ground_height = 100, 100, 50
 output_file = 'videos/water_simulation.mp4'
 ca = CA(width, height, ground_height)
-ca.run_simulation(50, output_file)
+ca.run_simulation(60, output_file)
