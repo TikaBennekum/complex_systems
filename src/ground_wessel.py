@@ -130,10 +130,11 @@ def determine_water_flow(water_self: float, ground_self: float, water_other: flo
 @jit 
 def test_water_flow(iterations: int):
     for _ in range(iterations):
-        water_self   = random() * 10.0
-        water_other  = random() * 10.0
-        ground_self  = random() * 10.0
-        ground_other = random() * 10.0
+        scaling_factor = 10.0
+        water_self   = random() * scaling_factor
+        water_other  = random() * scaling_factor
+        ground_self  = random() * scaling_factor
+        ground_other = random() * scaling_factor
 
         water_before = water_self + water_other
         ground_before = ground_self + ground_other

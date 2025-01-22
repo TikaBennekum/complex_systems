@@ -9,7 +9,7 @@ class Cell:
 
 class CA:
     
-    def __init__(self, width, height, ground_height):
+    def __init__(self, width: int, height: int, ground_height: int):
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
@@ -17,7 +17,7 @@ class CA:
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
             
-    def apply_rules(self, i, j, previous_grid):
+    def apply_rules(self, i: int, j: int, previous_grid: list[list[Cell]]):
         """Apply the water flow rules based on the previous grid state."""
         current_cell = self.grid[i][j]
         previous_cell = previous_grid[i][j]
@@ -87,7 +87,7 @@ class CA:
             for j in range(self.width):
                 self.apply_rules(i, j, previous_grid)
 
-    def run_simulation(self, num_epochs, output_file=None, show_live=True, window_scale=5):
+    def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
         """
         Run the simulation for a number of epochs, display it live, 
         and optionally save the results as a video.
