@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from noise import pnoise2
 
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
-EROSION_CONSTANT = 0.01
+EROSION_CONSTANT = 0.0001
+EROSION_EXPONENT = 2.5
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -15,7 +17,7 @@ def visualise_height(grid):
         heights = [np.round(cell.ground_height, 2).item() for cell in row]  # Extract ground heights for each cell in the row
         print(heights)
 
-def perlin_noise(width, height, max_amplitude):
+def perlin_noise(height, width, max_amplitude):
     """
     Generates a grid of Perlin noise to be added to the grid of ground heights.
 
@@ -33,9 +35,9 @@ def perlin_noise(width, height, max_amplitude):
 
     The max amplitude decides the maximum amount of noise added to the ground eh
     """
-    noise_map = np.zeros((width, height))
-    for i in range(width):
-        for j in range(height):
+    noise_map = np.zeros((height, width))
+    for i in range(height):
+        for j in range(width):
             noise_map[i][j] = pnoise2(i / 10, j / 10, octaves=3, persistence=0.4, lacunarity=2.2, repeatx=width, repeaty=height, base=25)
     normalized_noise_map = (noise_map + 1) / 2
     scaled_map = normalized_noise_map * max_amplitude
@@ -56,7 +58,7 @@ class CA:
         for i in range(height):
             self.grid[i, :, GROUND_HEIGHT] = height_gradient[i]
 
-        self.grid[:,:,GROUND_HEIGHT] += perlin_noise(self.width, self.height, 5)
+        self.grid[:,:,GROUND_HEIGHT] += perlin_noise(self.height, self.width, 5)
         self.enforce_boundary
         
     def enforce_boundary(self):        
@@ -84,7 +86,7 @@ class CA:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
                     current_cell[WATER_HEIGHT] -= discharge
-                    current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
+                    current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_CONSTANT, discharge, slope)
                     
 
         # If no positive slopes, distribute water evenly to zero-slope neighbors
@@ -95,7 +97,7 @@ class CA:
                 for idx in zero_slope_indices:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
-                    current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
+                    current_cell[GROUND_HEIGHT] -=  self.erosion_rule(EROSION_CONSTANT, discharge, slope)
                 current_cell[WATER_HEIGHT] -= discharge * len(zero_slope_indices)
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
@@ -109,7 +111,11 @@ class CA:
                         ni, nj = indices[idx]
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
                         current_cell[WATER_HEIGHT] -= discharge
-                        current_cell[GROUND_HEIGHT] -=  EROSION_CONSTANT * discharge
+                        current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_CONSTANT, discharge, slope)
+                        
+                        
+    def erosion_rule(self, K, Q, S=1, C=3):
+        return K*(Q*S)**EROSION_EXPONENT
 
     def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
         neighbors: list[NDArray] = []
@@ -117,7 +123,7 @@ class CA:
         slopes: list[float] = []
 
         # Collect neighbors and calculate slopes
-        for di, dj in ALL_NEIGHBORS:
+        for di, dj in BOTTOM_NEIGHBORS:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.height and 0 <= nj < self.width:
                 neighbor = previous_grid[ni][nj]
