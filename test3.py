@@ -14,6 +14,7 @@ class CA:
         self.height = height
         # Initialize the grid with cells, each having a ground height
         self.grid = [[Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)] for i in range(height)]
+        
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_present = 1
         self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
