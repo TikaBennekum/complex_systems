@@ -25,22 +25,7 @@ class CA:
         if previous_cell.water_height == 0:
             return  # Skip cells without water
 
-        neighbors = []
-        indices = []
-        slopes = []
-
-        # Collect neighbors and calculate slopes
-        for di, dj in ALL_NEIGHBORS:
-            ni, nj = i + di, j + dj
-            if 0 <= ni < self.height and 0 <= nj < self.width:
-                neighbor = previous_grid[ni][nj]
-                neighbors.append(neighbor)
-                indices.append((ni, nj))
-                # Calculate slope to the neighbor
-                distance = np.sqrt(di**2 + dj**2)
-                slope = (previous_cell.ground_height + previous_cell.water_height -
-                        (neighbor.ground_height + neighbor.water_height)) / distance
-                slopes.append(slope)
+        indices, slopes = self.create_indices_slopes(i, j, previous_grid, previous_cell)
 
         # Distribute water based on slopes
         total_positive_slope = sum(s for s in slopes if s > 0)
@@ -75,6 +60,25 @@ class CA:
                         ni, nj = indices[idx]
                         self.grid[ni][nj].water_height += discharge
                         current_cell.water_height -= discharge
+
+    def create_indices_slopes(self, i, j, previous_grid, previous_cell):
+        neighbors = []
+        indices = []
+        slopes = []
+
+        # Collect neighbors and calculate slopes
+        for di, dj in ALL_NEIGHBORS:
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.height and 0 <= nj < self.width:
+                neighbor = previous_grid[ni][nj]
+                neighbors.append(neighbor)
+                indices.append((ni, nj))
+                # Calculate slope to the neighbor
+                distance = np.sqrt(di**2 + dj**2)
+                slope = (previous_cell.ground_height + previous_cell.water_height -
+                        (neighbor.ground_height + neighbor.water_height)) / distance
+                slopes.append(slope)
+        return indices,slopes
 
     def update_grid(self):
         """Update the grid based on the previous state."""
