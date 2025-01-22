@@ -199,17 +199,13 @@ class CA:
             # Create a frame for the video showing water presence and height
             frame = np.zeros((self.height, 2*self.width, 3), dtype=np.uint8)
 
-            for i in range(self.height):
-                for j in range(self.width):
-                    # Display water as blue and non-water as brown
-                    h_range = np.max(self.grid[:,:,GROUND_HEIGHT]) - np.min(self.grid[:,:,GROUND_HEIGHT])
-                    frame[i, self.width + j] = [0,0, int(255/h_range*(self.grid[i][j][GROUND_HEIGHT] - np.min(self.grid[:,:,GROUND_HEIGHT])))] 
-                    if self.grid[i][j][WATER_HEIGHT] > 0:
-                        frame[i, j] = [255, 0, 0]  # Blue for water
-                        
+            h_range = np.max(self.grid[:,:,GROUND_HEIGHT]) - np.min(self.grid[:,:,GROUND_HEIGHT])
+            frame[:, self.width:, 2] = np.floor(255/h_range*(self.grid[:,:,GROUND_HEIGHT] - np.min(self.grid[:,:,GROUND_HEIGHT])))
+            
+            
+            h_range = np.max(self.grid[:,:,WATER_HEIGHT]) - np.min(self.grid[:,:,WATER_HEIGHT])
+            frame[:, :self.width, 0] = np.floor(255/h_range*(self.grid[:,:,WATER_HEIGHT] - np.min(self.grid[:,:,WATER_HEIGHT])))
 
-                    else:
-                        frame[i, j] = [0,0,0]  # Brown for no water
 
             # Optionally resize the frame for a larger display window
             if show_live and window_scale != 1:
