@@ -1,4 +1,6 @@
+from typing import Any
 import numpy as np
+from numpy.typing import NDArray
 import cv2
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 EROSION_CONSTANT = 0.1
@@ -29,22 +31,7 @@ class CA:
         if previous_cell[WATER_HEIGHT] == 0:
             return  # Skip cells without water
 
-        neighbors = []
-        indices = []
-        slopes = []
-
-        # Collect neighbors and calculate slopes
-        for di, dj in ALL_NEIGHBORS:
-            ni, nj = i + di, j + dj
-            if 0 <= ni < self.height and 0 <= nj < self.width:
-                neighbor = previous_grid[ni][nj]
-                neighbors.append(neighbor)
-                indices.append((ni, nj))
-                # Calculate slope to the neighbor
-                distance = np.sqrt(di**2 + dj**2)
-                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
-                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
-                slopes.append(slope)
+        indices, slopes = self.create_indices_slopes(i, j, previous_grid, previous_cell)
 
         # Distribute water based on slopes
         total_positive_slope = sum(s for s in slopes if s > 0)
@@ -81,6 +68,44 @@ class CA:
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
                         current_cell[WATER_HEIGHT] -= discharge
 
+    def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
+        neighbors: list[NDArray] = []
+        indices: list[tuple[int, int]] = []
+        slopes: list[float] = []
+
+        # Collect neighbors and calculate slopes
+        for di, dj in ALL_NEIGHBORS:
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.height and 0 <= nj < self.width:
+                neighbor = previous_grid[ni][nj]
+                neighbors.append(neighbor)
+                indices.append((ni, nj))
+                # Calculate slope to the neighbor
+                distance = np.sqrt(di**2 + dj**2)
+                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
+                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
+                slopes.append(slope)
+        return indices,slopes
+
+    def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
+        neighbors: list[tuple[float,float]] = []
+        indices: list[tuple[int, int]] = []
+        slopes: list[float] = []
+
+        # Collect neighbors and calculate slopes
+        for di, dj in ALL_NEIGHBORS:
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.height and 0 <= nj < self.width:
+                neighbor = previous_grid[ni][nj]
+                neighbors.append(neighbor)
+                indices.append((ni, nj))
+                # Calculate slope to the neighbor
+                distance = np.sqrt(di**2 + dj**2)
+                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
+                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
+                slopes.append(slope)
+        return indices,slopes
+
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
@@ -102,9 +127,9 @@ class CA:
             show_live (bool): Whether to display the simulation live.
             window_scale (float): Scale factor for the display window size (e.g., 2.0 for 2x size).
         """
-        frames = []  # Store frames for video
+        frames: list[NDArray[Any]] = []  # Store frames for video
 
-        for generation in range(num_epochs):
+        for _ in range(num_epochs):
             self.update_grid()
 
             # Create a frame for the video showing water presence and height
@@ -148,7 +173,7 @@ class CA:
         # Save all frames as a video if output_file is provided
         if output_file and frames:
             height, width, _ = frames[0].shape
-            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
+            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))  # type: ignore
             for frame in frames:
                 out.write(frame)
             out.release()
