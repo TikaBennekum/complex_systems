@@ -7,8 +7,8 @@ from dataclasses import dataclass
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
-EROSION_CONSTANT = 0#0.0001
-EROSION_EXPONENT = 1 #2.5
+EROSION_CONSTANT = 0.001
+EROSION_EXPONENT = 2.5
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -38,6 +38,8 @@ class CA:
         # Set the center cell at the top row with some water
         self.grid[0, self.width // 2, WATER_HEIGHT] += 50  # Arbitrary water height for the top-center cell
         self.grid[-1, :, WATER_HEIGHT] = 0  # Arbitrary water height for the top-center cell
+        self.grid[0, :, GROUND_HEIGHT] = self.grid[0,-1, GROUND_HEIGHT]  # Arbitrary water height for the top-center cell
+        self.grid[-1, :, GROUND_HEIGHT] = 0  # Arbitrary water height for the top-center cell
         
             
     def apply_rules(self, i: int, j: int, previous_grid: NDArray):
@@ -61,6 +63,7 @@ class CA:
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
                     current_cell[WATER_HEIGHT] -= discharge
                     current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_CONSTANT, discharge, slope)
+                    self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_CONSTANT, discharge, slope)
                     
 
         # If no positive slopes, distribute water evenly to zero-slope neighbors
@@ -72,24 +75,28 @@ class CA:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
                     current_cell[GROUND_HEIGHT] -=  self.erosion_rule(EROSION_CONSTANT, discharge, slope)
+                    self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_CONSTANT, discharge, slope)
                 current_cell[WATER_HEIGHT] -= discharge * len(zero_slope_indices)
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
         else:
-            total_negative_slope = sum(abs(s) for s in slopes if s < 0)
+            total_negative_slope = sum(abs(s)**-1 for s in slopes if s < 0)
             if total_negative_slope > 0:
                 for idx, slope in enumerate(slopes):
                     if slope < 0:
-                        proportion = abs(slope) / total_negative_slope
+                        proportion = abs(slope)**-1 / total_negative_slope
                         discharge = previous_cell[WATER_HEIGHT] * proportion
                         ni, nj = indices[idx]
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
                         current_cell[WATER_HEIGHT] -= discharge
                         current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_CONSTANT, discharge, slope)
+                        self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_CONSTANT, discharge, slope)
                         
-                        
-    def erosion_rule(self, K, Q, S=1, C=3):
-        return K*(Q*(S+ C))**EROSION_EXPONENT
+        
+    def erosion_rule(self, K, Q, S=0, C=0):
+        if Q <= 0:
+            return 0
+        return K* np.sign(S) * np.power(Q*(np.abs(S) + C), EROSION_EXPONENT)
 
     def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
         neighbors: list[NDArray] = []
@@ -105,7 +112,7 @@ class CA:
                 indices.append((ni, nj))
                 # Calculate slope to the neighbor
                 distance = np.sqrt(di**2 + dj**2)
-                slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
+                slope = (previous_cell[GROUND_HEIGHT]  -
                         (neighbor[GROUND_HEIGHT] )) / distance
                 slopes.append(slope)
         return indices,slopes
@@ -120,6 +127,9 @@ class CA:
         for i in range(self.height):
             for j in range(self.width):
                 self.apply_rules(i, j, previous_grid)
+                
+        diff = self.grid[:,:,GROUND_HEIGHT] - previous_grid[:,:,GROUND_HEIGHT]
+        print( np.max(diff), np.min(diff), np.mean(diff))
     
     def run_output_last_state(self, num_epochs: int, save_to: None|str = None):
         """Run the simulation for a number of epochs, return last state."""
