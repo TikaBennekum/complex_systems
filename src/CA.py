@@ -7,7 +7,7 @@ from dataclasses import dataclass
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
-EROSION_CONSTANT = 0 #0.0001
+EROSION_CONSTANT = 0#0.0001
 EROSION_EXPONENT = 1 #2.5
 
 def visualise_height(grid):
@@ -36,7 +36,8 @@ class CA:
         
     def enforce_boundary(self):        
         # Set the center cell at the top row with some water
-        self.grid[0, self.width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
+        self.grid[0, self.width // 2, WATER_HEIGHT] += 50  # Arbitrary water height for the top-center cell
+        self.grid[-1, :, WATER_HEIGHT] = 0  # Arbitrary water height for the top-center cell
         
             
     def apply_rules(self, i: int, j: int, previous_grid: NDArray):
@@ -105,7 +106,7 @@ class CA:
                 # Calculate slope to the neighbor
                 distance = np.sqrt(di**2 + dj**2)
                 slope = (previous_cell[GROUND_HEIGHT] + previous_cell[WATER_HEIGHT] -
-                        (neighbor[GROUND_HEIGHT] + neighbor[WATER_HEIGHT])) / distance
+                        (neighbor[GROUND_HEIGHT] )) / distance
                 slopes.append(slope)
         return indices,slopes
 
@@ -155,7 +156,10 @@ class CA:
             
             
             h_range = np.max(self.grid[:,:,WATER_HEIGHT]) - np.min(self.grid[:,:,WATER_HEIGHT])
-            frame[:, :self.width, 0] = np.floor(255/h_range*(self.grid[:,:,WATER_HEIGHT] - np.min(self.grid[:,:,WATER_HEIGHT])))
+            frame[:, :self.width, 0] = np.floor(155/h_range*(self.grid[:,:,WATER_HEIGHT] - np.min(self.grid[:,:,WATER_HEIGHT])))
+            
+            
+            frame[:, :self.width, 0] += (100*(self.grid[:,:,WATER_HEIGHT] > 0)).astype(np.uint8)
 
 
             # Optionally resize the frame for a larger display window
