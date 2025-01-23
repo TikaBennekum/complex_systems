@@ -153,18 +153,9 @@ class CA:
             self.update_grid()
 
         if save_to:
-            with open("videos/output.txt", "w") as file:
-                for number, row in enumerate(self.grid):
-                    file.write(f"Line {number} of {len(self.grid) - 1}\n")
-                    for cell in row:
-                        file.write(f"    ({cell.water_height}, {cell.ground_height})\n")
+            np.save(save_to, self.grid)
         else:
-            output_string = ""
-            for number, row in enumerate(self.grid):
-                output_string += f"Line {number} of {len(self.grid) - 1}\n"
-                for cell in row:
-                    output_string += f"    ({cell.water_height}, {cell.ground_height})\n"
-        return output_string
+            raise NotImplementedError
 
 
     def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
@@ -230,4 +221,4 @@ class CA:
 
 if __name__ == '__main__':
     system = CA(20, 40, 5)
-    system.run_output_last_state(100, save_to="videos/output.txt")
+    system.run_output_last_state(100, save_to="videos/output")

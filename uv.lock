@@ -65,6 +65,7 @@ dependencies = [
     { name = "opencv-python" },
     { name = "pyqt6" },
     { name = "pytest" },
+    { name = "vtk" },
 ]
 
 [package.metadata]
@@ -78,6 +79,7 @@ requires-dist = [
     { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "pyqt6", specifier = ">=6.8.0" },
     { name = "pytest", specifier = ">=8.3.4" },
+    { name = "vtk", specifier = ">=9.4.1" },
 ]
 
 [[package]]
@@ -545,4 +547,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050 },
+]
+
+[[package]]
+name = "vtk"
+version = "9.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/ab/637ce650aa5f8a21999bea0f7c793c5792c6dd95376539a0b4c1db9a0941/vtk-9.4.1-cp312-cp312-macosx_10_10_x86_64.whl", hash = "sha256:0ba2e5782fa789d39bfe157f67e147693bec89d2e33184952bea1ef8ede16141", size = 82685104 },
+    { url = "https://files.pythonhosted.org/packages/0c/9a/5c888effbf6a8c5b53bacff0e2c5c2851a765dfc149465f6360f06a2aef7/vtk-9.4.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:0a8427dbaa3248a5629d3cd20af8d1f99c89e7ed58b9b03b8eda2a98d0c3bd98", size = 76540843 },
+    { url = "https://files.pythonhosted.org/packages/8a/ef/e837d52792425612e8a47ba549164506abfaf12ab3d523ffd5d65cf6f8ad/vtk-9.4.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9d14573192ef90cefe040768e3ebf3c42810e4ed120794794067cd217686812f", size = 105053256 },
+    { url = "https://files.pythonhosted.org/packages/0c/18/2e8fe3ca36cc676c9c07b9245ec54b221c12075a41b79dae1f32c4d2b3af/vtk-9.4.1-cp312-cp312-win_amd64.whl", hash = "sha256:4dc25985b8be5f3fa0a9f4d6d7acf570eb4174bef3f38e28c8071a9d85588fb2", size = 58481383 },
+    { url = "https://files.pythonhosted.org/packages/4a/a8/65ad4ef1652d428dced7a5dcb4bd40ec88d774ab20a44a0971d634f10ebc/vtk-9.4.1-cp313-cp313-macosx_10_10_x86_64.whl", hash = "sha256:62799051c11dcffd6602eee2bbe5044399dd660fd5da01c516722409e3efdcc9", size = 82707180 },
+    { url = "https://files.pythonhosted.org/packages/e6/f7/9dc9892acf8a82b249884463336d21f651afefe108c6666851ca9f27ce85/vtk-9.4.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:d96c5c56947e73d133878beab8b5a64cab4f1417840e19ce379c733de976ec77", size = 76552601 },
+    { url = "https://files.pythonhosted.org/packages/cb/20/e35713b37f6392c13716da373bf06cce022f41c3f773b57150567ff2c913/vtk-9.4.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4710e29b38f569f3f4ab2bbd9672c13c5f506a8bb774bed122d4f4ae5d5462dd", size = 105053591 },
+    { url = "https://files.pythonhosted.org/packages/4d/43/53c334defdbca53a2154fd005f29470b7a1f9a175a2d27e949c03439ff51/vtk-9.4.1-cp313-cp313-win_amd64.whl", hash = "sha256:852690a80c10775aa29399c0be2dba65f0a5f3de480244fef7920968a69c960b", size = 58482038 },
 ]
