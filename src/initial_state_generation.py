@@ -6,14 +6,18 @@ GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
 
-def generate_initial_slope(height, width, slope_top, slope_bot = 0, noise_amplitude = 0):
+def generate_initial_slope(height, width, slope_top, slope_bot = 0, noise_amplitude = 0, noise_type = 'perlin'):
     
     grid = np.zeros([height, width, NUM_CELL_FLOATS])
     height_gradient = np.linspace(slope_top, slope_bot, height)
     for i in range(height):
         grid[i, :, GROUND_HEIGHT] = height_gradient[i]
 
-    grid[:,:,GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)
+    if noise_type == 'white':
+        grid[:,:,GROUND_HEIGHT] += np.random.normal(0, noise_amplitude, size=[height, width])
+    elif noise_type== 'perlin':
+        grid[:,:,GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)
+        
     
     return grid
     
