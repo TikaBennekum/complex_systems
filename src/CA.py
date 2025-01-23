@@ -131,16 +131,6 @@ class CA:
         diff = self.grid[:,:,GROUND_HEIGHT] - previous_grid[:,:,GROUND_HEIGHT]
         print( np.max(diff), np.min(diff), np.mean(diff))
     
-    def run_output_last_state(self, num_epochs: int, save_to: None|str = None):
-        """Run the simulation for a number of epochs, return last state."""
-        for _ in range(num_epochs):
-            self.update_grid()
-
-        if save_to:
-            np.save(save_to, self.grid)
-        else:
-            raise NotImplementedError
-
 
     def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
         """
@@ -205,7 +195,3 @@ class CA:
             print(f"Simulation saved to {output_file}")
         elif not frames:
             print("No frames to save!")
-
-if __name__ == '__main__':
-    system = CA(20, 40, 5)
-    system.run_output_last_state(100, save_to="videos/output")
