@@ -3,12 +3,11 @@ import numpy as np
 from numpy.typing import NDArray
 import cv2
 from dataclasses import dataclass
-from noise import pnoise2
 
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
-EROSION_CONSTANT = 0.0001
+EROSION_CONSTANT = 0 #0.0001
 EROSION_EXPONENT = 1 #2.5
 
 def visualise_height(grid):
@@ -17,49 +16,23 @@ def visualise_height(grid):
         heights = [np.round(cell.ground_height, 2).item() for cell in row]  # Extract ground heights for each cell in the row
         print(heights)
 
-def perlin_noise(height, width, max_amplitude):
-    """
-    Generates a grid of Perlin noise to be added to the grid of ground heights.
-
-    Scale: i/x or j/x, where the x controls the scale of the noise,
-            a higher x creates a smoother noise pattern, and a smaller x creates a more detailed pattern.
-    Octaves: The number of layers of noise combined to create the final texture.
-            A higher value makes the noise more complex.
-    Persistence: Controls how much influence higher-frequency octaves have.
-            Essentially, this determines the amplitude (height) of the noise at smaller scales.
-    Lacunarity: Determines the frequency increase between octaves.
-            Higher values give more intricate patterns.
-    Repeatx/repeaty: The periodicity of the noise.
-            Setting it to the width,height means no repeating patterns.
-    Base: This is like a random seed, keeping the results consistent.
-
-    The max amplitude decides the maximum amount of noise added to the ground eh
-    """
-    noise_map = np.zeros((height, width))
-    for i in range(height):
-        for j in range(width):
-            noise_map[i][j] = pnoise2(i / 10, j / 10, octaves=3, persistence=0.4, lacunarity=2.2, repeatx=width, repeaty=height, base=25)
-    normalized_noise_map = (noise_map + 1) / 2
-    scaled_map = normalized_noise_map * max_amplitude
-    return scaled_map
 
 NUM_CELL_FLOATS = 2
 GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
 class CA:
-    def __init__(self, width: int, height: int, ground_height: int):
+    def __init__(self, width: int, height: int, initial_state: NDArray = None, neighbor_list = BOTTOM_NEIGHBORS):
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
-
-        self.grid = np.zeros([height, width, NUM_CELL_FLOATS])
-        height_gradient = np.linspace(ground_height, 0, height)
-        for i in range(height):
-            self.grid[i, :, GROUND_HEIGHT] = height_gradient[i]
-
-        self.grid[:,:,GROUND_HEIGHT] += perlin_noise(self.height, self.width, 5)
-        self.enforce_boundary
+        if initial_state is not None:
+            self.grid = initial_state.copy()	
+        else:
+            self.grid = np.zeros([height, width, NUM_CELL_FLOATS])                
+        self.enforce_boundary()
+        
+        self.neighbor_list = neighbor_list
         
     def enforce_boundary(self):        
         # Set the center cell at the top row with some water
@@ -123,7 +96,7 @@ class CA:
         slopes: list[float] = []
 
         # Collect neighbors and calculate slopes
-        for di, dj in BOTTOM_NEIGHBORS:
+        for di, dj in self.neighbor_list:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.height and 0 <= nj < self.width:
                 neighbor = previous_grid[ni][nj]
