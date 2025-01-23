@@ -1,3 +1,4 @@
+import numpy as np
 import vtk
 from vtkmodules.vtkCommonColor import vtkNamedColors
 from vtkmodules.vtkCommonCore import vtkCommand
@@ -5,7 +6,6 @@ from vtkmodules.vtkInteractionWidgets import (
     vtkSliderRepresentation2D,
     vtkSliderWidget
 )
-import numpy as np
 from vtkmodules.vtkRenderingCore import (
     vtkRenderWindow,
     vtkRenderWindowInteractor

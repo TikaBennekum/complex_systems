@@ -4,7 +4,7 @@ from CA import BOTTOM_NEIGHBORS, CA
 
 
 class CAHistory(CA):
-    def __init__(self, width: int, height: int, initial_state: NDArray = None, neighbor_list=...):
+    def __init__(self, width: int, height: int, initial_state: NDArray | None = None, neighbor_list=...):
         super().__init__(width, height, initial_state, neighbor_list)
         self.history = [self.grid]
     
