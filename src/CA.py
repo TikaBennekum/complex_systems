@@ -9,6 +9,7 @@ BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
 EROSION_CONSTANT = 0.01
 EROSION_EXPONENT = 2.5
+N = 0.5
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -53,11 +54,11 @@ class CA:
         indices, slopes = self.create_indices_slopes(i, j, previous_grid, previous_cell)
 
         # Distribute water based on slopes
-        total_positive_slope = sum(s for s in slopes if s > 0)
+        total_positive_slope = sum(s**N for s in slopes if s > 0)
         if total_positive_slope > 0:
             for idx, slope in enumerate(slopes):
                 if slope > 0:
-                    proportion = slope / total_positive_slope
+                    proportion = slope**N / total_positive_slope
                     discharge = previous_cell[WATER_HEIGHT] * proportion
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
@@ -80,11 +81,11 @@ class CA:
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
         else:
-            total_negative_slope = sum(abs(s)**-1 for s in slopes if s < 0)
+            total_negative_slope = sum(abs(s)**-N for s in slopes if s < 0)
             if total_negative_slope > 0:
                 for idx, slope in enumerate(slopes):
                     if slope < 0:
-                        proportion = abs(slope)**-1 / total_negative_slope
+                        proportion = abs(slope)**-N / total_negative_slope
                         discharge = previous_cell[WATER_HEIGHT] * proportion
                         ni, nj = indices[idx]
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
