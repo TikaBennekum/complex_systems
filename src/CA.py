@@ -7,7 +7,7 @@ from dataclasses import dataclass
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 
-EROSION_CONSTANT = 0.001
+EROSION_CONSTANT = 0.01
 EROSION_EXPONENT = 2.5
 
 def visualise_height(grid):
@@ -96,7 +96,7 @@ class CA:
     def erosion_rule(self, K, Q, S=0, C=0):
         if Q <= 0:
             return 0
-        return K* np.sign(S) * np.power(Q*(np.abs(S) + C), EROSION_EXPONENT)
+        return K* np.sign(S) * np.minimum(0.1*S, np.power(Q*(np.abs(S) + C), EROSION_EXPONENT))
 
     def create_indices_slopes(self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray) -> tuple[list[tuple[int, int]], list[float]]:
         neighbors: list[NDArray] = []
@@ -129,7 +129,7 @@ class CA:
                 self.apply_rules(i, j, previous_grid)
                 
         diff = self.grid[:,:,GROUND_HEIGHT] - previous_grid[:,:,GROUND_HEIGHT]
-        print( np.max(diff), np.min(diff), np.mean(diff))
+        # print( np.max(diff), np.min(diff), np.mean(diff))
     
 
     def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
