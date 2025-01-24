@@ -201,12 +201,14 @@ class CA:
             cv2.destroyAllWindows()
 
         # Save all frames as a video if output_file is provided
-        if output_file and frames:
-            height, width, _ = frames[0].shape
-            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
-            for frame in frames:
-                out.write(frame)
-            out.release()
-            print(f"Simulation saved to {output_file}")
-        elif not frames:
-            print("No frames to save!")
+        # if output_file and frames:
+        #     height, width, _ = frames[0].shape
+        #     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
+        #     for frame in frames:
+        #         out.write(frame)
+        #     out.release()
+        #     print(f"Simulation saved to {output_file}")
+        # elif not frames:
+        #     print("No frames to save!")
+
+        print(frames)
