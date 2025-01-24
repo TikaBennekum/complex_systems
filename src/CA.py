@@ -5,6 +5,10 @@ import cv2
 from dataclasses import dataclass
 import tqdm
 
+
+from visualization2d import *
+from constants import *
+
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
 BOTTOM_SIDE_NEIGHBORS = [(1, 0), (1, -1), (1, 1),(0, -1), (0, 1)]
@@ -21,9 +25,6 @@ def visualise_height(grid):
         print(heights)
 
 
-NUM_CELL_FLOATS = 2
-GROUND_HEIGHT = 0
-WATER_HEIGHT = 1
 
 class CA:
     def __init__(self, width: int, height: int, initial_state: NDArray = None, neighbor_list = BOTTOM_NEIGHBORS):
@@ -160,38 +161,22 @@ class CA:
             if save_nth>0 and step % save_nth ==0:
                 self.saved_grids[step // save_nth] = self.grid.copy()
 
-            if(output_file or show_live):
-                # Create a frame for the video showing water presence and height
-                frame = np.zeros((self.height, 2*self.width, 3), dtype=np.uint8)
+            if(show_live):
+                
+                frame = compute_frame(self.grid)
 
-                h_range = np.max(self.grid[:,:,GROUND_HEIGHT]) - np.min(self.grid[:,:,GROUND_HEIGHT])
-                frame[:, self.width:, 2] = np.floor(255/h_range*(self.grid[:,:,GROUND_HEIGHT] - np.min(self.grid[:,:,GROUND_HEIGHT])))
-                
-                # log_height = np.log10(np.maximum(1e-6, self.grid[:,:,WATER_HEIGHT]))
-                log_height = np.sqrt(np.maximum(1e-6, self.grid[:,:,WATER_HEIGHT]))
-                h_range = np.max(log_height) - np.min(log_height)
-                frame[:, :self.width, 0] = np.floor(155/h_range*(log_height - np.min(log_height)))
-                
-                
-                frame[:, :self.width, 0] += (50*(self.grid[:,:,WATER_HEIGHT] > 0)).astype(np.uint8)
-                frame[:, :self.width, 0] += (50*(self.grid[:,:,WATER_HEIGHT] > 1e-3)).astype(np.uint8)
 
 
                 # Optionally resize the frame for a larger display window
-                if show_live and window_scale != 1:
+                if window_scale != 1:
                     scaled_size = (int(frame.shape[1] * window_scale), int(frame.shape[0] * window_scale))
-                    display_frame = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_LINEAR)
-                else:
-                    display_frame = frame
-
-                # Optionally show the simulation live
-                if show_live:
-                    cv2.imshow("Simulation", display_frame)
-                    # Wait for a short period to control the frame rate
-                    # and allow the user to exit the simulation by pressing 'q'
-                    if cv2.waitKey(100) & 0xFF == ord('q'):
-                        print("Simulation interrupted by user.")
-                        break
+                    frame = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_LINEAR)
+                cv2.imshow("Simulation", frame)
+                # Wait for a short period to control the frame rate
+                # and allow the user to exit the simulation by pressing 'q'
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    print("Simulation interrupted by user.")
+                    break
 
                 # Append the original frame for the video
                 frames.append(frame)
@@ -199,16 +184,3 @@ class CA:
         # Close the display window
         if show_live:
             cv2.destroyAllWindows()
-
-        # Save all frames as a video if output_file is provided
-        # if output_file and frames:
-        #     height, width, _ = frames[0].shape
-        #     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
-        #     for frame in frames:
-        #         out.write(frame)
-        #     out.release()
-        #     print(f"Simulation saved to {output_file}")
-        # elif not frames:
-        #     print("No frames to save!")
-
-        print(frames)
