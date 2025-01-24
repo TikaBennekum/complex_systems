@@ -1,7 +1,7 @@
-# Existing code
+import numpy as np
+import matplotlib.pyplot as plt
 from CA import *
 from initial_state_generation import generate_initial_slope
-import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     # Set random seed for reproducibility
@@ -17,44 +17,34 @@ if __name__ == "__main__":
     perturbed_state = initial_state.copy()
     perturbed_state[1, width // 2, GROUND_HEIGHT] += -0.1  # Add a small bump/hole to the terrain
 
-    # Visualize the initial terrain difference
-    terrain_difference_initial = perturbed_state[:, :, GROUND_HEIGHT] - initial_state[:, :, GROUND_HEIGHT]
-
-    # Plot the initial terrain differences before simulation
-    plt.figure(figsize=(12, 5))
-    # [Your existing plotting code here]
-    plt.savefig('data/initial_terrain_comparison.png')
-    plt.show()
-
     # First simulation: Unmodified terrain
     ca1 = CA(width, height, initial_state.copy(), neighbor_list=BOTTOM_NEIGHBORS)
     ca1.grid[0, width // 2, WATER_HEIGHT] = 50  # Water source at the center
-    water_heights_unmodified = []  # Store water heights for each timestep
-    for _ in range(2000):
-        ca1.update_grid()
-        water_heights_unmodified.append(ca1.grid[:, :, WATER_HEIGHT].copy())
+    ca1.run_simulation(num_epochs=1000, show_live=False, save_nth=1)  # Save every 10th frame
+    unmodified_states = ca1.saved_grids  # Store saved states for unmodified terrain
 
     # Second simulation: Slight terrain change under the water source
     ca2 = CA(width, height, perturbed_state, neighbor_list=BOTTOM_NEIGHBORS)
     ca2.grid[0, width // 2, WATER_HEIGHT] = 50  # Same water source position
-    water_heights_modified = []  # Store water heights for each timestep
-    for _ in range(2000):
-        ca2.update_grid()
-        water_heights_modified.append(ca2.grid[:, :, WATER_HEIGHT].copy())
+    ca2.run_simulation(num_epochs=1000, show_live=False, save_nth=1)  # Save every 10th frame
+    modified_states = ca2.saved_grids  # Store saved states for modified terrain
 
-    # Calculate water height differences for each timestep
+    # Calculate the differences in water height for each saved state
     water_height_differences = []
-    for t in range(2000):
-        difference = water_heights_unmodified[t] - water_heights_modified[t]
-        water_height_differences.append(difference)
+    for t in range(unmodified_states.shape[0]):
+        difference = unmodified_states[t, :, :, WATER_HEIGHT] - modified_states[t, :, :, WATER_HEIGHT]
+        abs_difference = np.abs(difference)
+        water_height_differences.append(np.mean(abs_difference))  # Mean difference across the grid
 
-    # Visualize the differences over time (for a few selected timesteps)
-    plt.figure(figsize=(12, 5))
-    for t in range(0, 2000, 400):  # Plot every 400 timesteps
-        plt.subplot(1, 5, t // 400 + 1)
-        plt.title(f"Water Height Difference at Timestep {t}")
-        plt.imshow(water_height_differences[t], cmap="coolwarm", interpolation="none")
-        plt.colorbar(label="Height Difference")
+    # Plot the differences over time
+    plt.figure(figsize=(10, 5))
+    plt.plot(water_height_differences, label="Water Height Difference", color="blue")
+    plt.title("Average Water Height Difference Over Time")
+    plt.xlabel("Time Step (Every 10th Iteration)")
+    plt.ylabel("Average Water Height Difference")
+    plt.legend()
+    plt.grid()
     plt.tight_layout()
-    plt.savefig('data/water_height_differences_over_time.png')
+    plt.savefig('data/water_height_difference_plot.png')
     plt.show()
+    
