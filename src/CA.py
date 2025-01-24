@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import tqdm
 
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
+BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)] # Neighbour setup from paper
 BOTTOM_SIDE_NEIGHBORS = [(1, 0), (1, -1), (1, 1),(0, -1), (0, 1)]
 
 EROSION_K = 0.1
@@ -136,6 +136,14 @@ class CA:
         # print( np.max(diff), np.min(diff), np.mean(diff))
     
 
+    def run_experiment1(self, num_epochs):
+        grids = np.array([None for _ in range(num_epochs + 1)])
+        for i in range(1, num_epochs + 1):
+            self.update_grid()
+            grids[i] = self.grid.copy()
+        return grids
+
+
     def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
         """
         Run the simulation for a number of epochs, display it live, 
@@ -193,14 +201,14 @@ class CA:
             cv2.destroyAllWindows()
 
         # Save all frames as a video if output_file is provided
-        # if output_file and frames:
-        #     height, width, _ = frames[0].shape
-        #     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
-        #     for frame in frames:
-        #         out.write(frame)
-        #     out.release()
-        #     print(f"Simulation saved to {output_file}")
-        # elif not frames:
-        #     print("No frames to save!")
+        if output_file and frames:
+            height, width, _ = frames[0].shape
+            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
+            for frame in frames:
+                out.write(frame)
+            out.release()
+            print(f"Simulation saved to {output_file}")
+        elif not frames:
+            print("No frames to save!")
 
         print(frames)
