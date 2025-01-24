@@ -14,5 +14,7 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "pyqt6>=6.8.0",
     "pytest>=8.3.4",
+    "snakeviz>=2.2.2",
+    "tqdm>=4.67.1",
     "vtk>=9.4.1",
 ]

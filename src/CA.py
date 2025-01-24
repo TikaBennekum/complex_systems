@@ -3,6 +3,7 @@ import numpy as np
 from numpy.typing import NDArray
 import cv2
 from dataclasses import dataclass
+import tqdm
 
 ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)]
@@ -148,7 +149,7 @@ class CA:
         """
         frames: list[NDArray[Any]] = []  # Store frames for video
 
-        for _ in range(num_epochs):
+        for _ in tqdm.tqdm(range(num_epochs)):
             self.update_grid()
 
             if(output_file or show_live):
@@ -194,7 +195,7 @@ class CA:
         # Save all frames as a video if output_file is provided
         if output_file and frames:
             height, width, _ = frames[0].shape
-            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))  # type: ignore
+            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
             for frame in frames:
                 out.write(frame)
             out.release()
