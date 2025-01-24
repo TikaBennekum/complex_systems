@@ -136,7 +136,7 @@ class CA:
         # print( np.max(diff), np.min(diff), np.mean(diff))
     
 
-    def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5):
+    def run_simulation(self, num_epochs: int, output_file: None|str =None, show_live: bool=True, window_scale: int=5, save_nth = 0):
         """
         Run the simulation for a number of epochs, display it live, 
         and optionally save the results as a video.
@@ -146,11 +146,19 @@ class CA:
             output_file (str): File path to save the video (optional).
             show_live (bool): Whether to display the simulation live.
             window_scale (float): Scale factor for the display window size (e.g., 2.0 for 2x size).
+            save_nth (int): save every nth frame as numpy tensor [steps, height, width, num_cell_args=2].
         """
         frames: list[NDArray[Any]] = []  # Store frames for video
+        
+        if save_nth >0:
+            dims = self.grid.shape
+            self.saved_grids = np.zeros([num_epochs//save_nth, dims[0], dims[1], dims[2]])  # Store every nth state of the simulation
 
-        for _ in tqdm.tqdm(range(num_epochs)):
+        for step in tqdm.tqdm(range(num_epochs)):
             self.update_grid()
+            
+            if save_nth>0 and step % save_nth ==0:
+                self.saved_grids[step // save_nth] = self.grid.copy()
 
             if(output_file or show_live):
                 # Create a frame for the video showing water presence and height
