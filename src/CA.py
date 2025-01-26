@@ -41,7 +41,7 @@ class CA:
         
     def enforce_boundary(self):        
         # Set the center cell at the top row with some water
-        self.grid[0, self.width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
+        self.grid[0, self.width // 2, WATER_HEIGHT] = 1  # Arbitrary water height for the top-center cell
         self.grid[-1, :, WATER_HEIGHT] = 0  # Arbitrary water height for the top-center cell
         self.grid[0, :, GROUND_HEIGHT] = self.grid[0,-1, GROUND_HEIGHT]  # Arbitrary water height for the top-center cell
         self.grid[-1, :, GROUND_HEIGHT] = 0  # Arbitrary water height for the top-center cell
@@ -97,6 +97,7 @@ class CA:
                         current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_K, discharge, slope)
                         self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_K, discharge, slope)
                         
+        assert current_cell[WATER_HEIGHT] > - 1e-8
            
     def erosion_rule(self, K, Q, S=0, C=EROSION_C):
         if Q <= 0:
