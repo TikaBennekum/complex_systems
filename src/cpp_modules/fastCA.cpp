@@ -124,8 +124,8 @@ void simulate(py::array_t<double>& grids, py::dict params) {
                 add_to_list(slope, row+1, col-1);
             }
             // bottom neighbor
-            double slope = M_SQRT1_2 * (grid_arr(prev_step, row, col, GROUND_HEIGHT) - grid_arr(prev_step, row + 1, col -1, GROUND_HEIGHT));
-            add_to_list(slope, row+1, col-1);
+            double slope = M_SQRT1_2 * (grid_arr(prev_step, row, col, GROUND_HEIGHT) - grid_arr(prev_step, row + 1, col, GROUND_HEIGHT));
+            add_to_list(slope, row+1, col);
             //bot right
             if (col < width -1){
                 double slope = M_SQRT1_2 * (grid_arr(prev_step, row, col, GROUND_HEIGHT) - grid_arr(prev_step, row + 1, col +1, GROUND_HEIGHT));
