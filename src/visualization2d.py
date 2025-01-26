@@ -25,10 +25,22 @@ def compute_frame(grid):
     
     
 def save_video(saved_grids, output_file):
-        height, width, _ = compute_frame(saved_grids[0]).shape
-        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
+        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (saved_grids.shape[2], 2*saved_grids.shape[1]))  # type: ignore
         for grid in saved_grids:
-            out.write(compute_frame(grid))
+            frame = compute_frame(grid)
+            out.write(frame)
         out.release()
         print(f"Simulation saved to {output_file}")
+        
+def stream_video(saved_grids, scale=10, fps=100):
+    
+    for grid in saved_grids:
+        frame = compute_frame(grid)
+        if scale != 1:
+            scaled_size = (int(frame.shape[1] * scale), int(frame.shape[0] * scale))
+            frame = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_LINEAR)
+        cv2.imshow("Simulation", frame)
+        if cv2.waitKey(1000//fps) & 0xFF == ord('q'):
+            print("Simulation interrupted by user.")
+            break
     
