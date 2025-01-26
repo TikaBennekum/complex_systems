@@ -10,11 +10,11 @@ from cpp_modules import fastCA
 if __name__ == "__main__":
     # Example usage
     np.random.seed(42)
-    width, height, ground_height, num_steps = 21, 101, 101*.1, 1000
+    width, height, ground_height, num_steps = 21, 101, 101*.1, 10000
     
     initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude = 0.2, noise_type = 'white')
     
-    add_central_flow(initial_state, 10)
+    add_central_flow(initial_state, 1)
     
     
     grids = np.zeros([num_steps, height, width, NUM_CELL_FLOATS])
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     
     
     # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    plt.imshow(grids[0,:,:,WATER_HEIGHT] )
-    plt.colorbar()
+    # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
+    # plt.colorbar()
     
     plt.savefig('data/cpptest0.png')
     
@@ -37,24 +37,13 @@ if __name__ == "__main__":
     fastCA.simulate(grids, params)
     
     # print(grids)
-    
-    save_video(grids, 'videos/cpp_test')
+    # save_video(grids, 'videos/cpp_test.mp4')
     # print(grids)
     
     # # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
-    # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.colorbar()
-    
+    plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
+    plt.colorbar()
+    plt.show()
     # plt.savefig('data/cpptest.png')
 
-    # plt.imshow(grids[1,:,:,WATER_HEIGHT] )
-    # # plt.imshow(grids[1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.colorbar()
-    
-    # plt.savefig('data/cpptest1.png')
-
-    # plt.imshow(grids[-1,:,:,WATER_HEIGHT] )
-    # # plt.imshow(grids[1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.colorbar()
-    
-    # plt.savefig('data/cpptest2.png')
+    stream_video(grids)
