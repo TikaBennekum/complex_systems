@@ -16,10 +16,18 @@ def generate_initial_slope(height, width, slope_top, slope_bot = 0, noise_amplit
     if noise_type == 'white':
         grid[:,:,GROUND_HEIGHT] += np.random.normal(0, noise_amplitude, size=[height, width])
     elif noise_type== 'perlin':
-        grid[:,:,GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)
-        
+        grid[:,:,GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)       
     
     return grid
+
+
+
+def add_central_flow(grid, flow_amount):    
+    grid[0, grid.shape[1] // 2, WATER_HEIGHT] = flow_amount  
+    
+    return grid
+    
+    
     
 def perlin_noise(height, width, max_amplitude):
     """
