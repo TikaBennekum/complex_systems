@@ -165,6 +165,10 @@ class CA:
             if save_nth>0 and step % save_nth ==0:
                 self.saved_grids[step // save_nth] = self.grid.copy()
 
+            if(output_file or show_live):
+                # Create a frame for the video showing water presence and height
+                frame = np.zeros((self.height, 2*self.width, 3), dtype=np.uint8)
+
             if(show_live):
                 
                 frame = compute_frame(self.grid)
@@ -188,3 +192,16 @@ class CA:
         # Close the display window
         if show_live:
             cv2.destroyAllWindows()
+
+        # Save all frames as a video if output_file is provided
+        # if output_file and frames:
+        #     height, width, _ = frames[0].shape
+        #     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 60, (width, height))  # type: ignore
+        #     for frame in frames:
+        #         out.write(frame)
+        #     out.release()
+        #     print(f"Simulation saved to {output_file}")
+        # elif not frames:
+        #     print("No frames to save!")
+
+        print(frames)
