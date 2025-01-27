@@ -9,7 +9,7 @@ ALL_NEIGHBORS = [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (
 BOTTOM_NEIGHBORS = [(1, 0), (1, -1), (1, 1)] # Neighbour setup from paper
 BOTTOM_SIDE_NEIGHBORS = [(1, 0), (1, -1), (1, 1),(0, -1), (0, 1)]
 
-EROSION_K = 0.1
+EROSION_K = 0.1 # erosion rate
 EROSION_C = 0.3
 EROSION_EXPONENT = 2.5
 N = 0.5
@@ -40,7 +40,7 @@ class CA:
         
     def enforce_boundary(self):        
         # Set the center cell at the top row with some water
-        self.grid[0, self.width // 2, WATER_HEIGHT] = 50  # Arbitrary water height for the top-center cell
+        self.grid[0, self.width // 2, WATER_HEIGHT] = 100  # strength water flow for the top-center cell
         self.grid[-1, :, WATER_HEIGHT] = 0  # Arbitrary water height for the top-center cell
         self.grid[0, :, GROUND_HEIGHT] = self.grid[0,-1, GROUND_HEIGHT]  # Arbitrary water height for the top-center cell
         self.grid[-1, :, GROUND_HEIGHT] = 0  # Arbitrary water height for the top-center cell
@@ -136,9 +136,12 @@ class CA:
         # print( np.max(diff), np.min(diff), np.mean(diff))
     
 
-    def run_experiment1(self, num_epochs):
-        grids = np.array([None for _ in range(num_epochs + 1)])
-        for i in range(1, num_epochs + 1):
+    def run_experiment1(self, num_epochs, erosion_rate):
+        global  EROSION_K
+        EROSION_K = erosion_rate
+
+        grids = np.array([None for _ in range(num_epochs)])
+        for i in range(num_epochs):
             self.update_grid()
             grids[i] = self.grid.copy()
         return grids

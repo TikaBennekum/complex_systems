@@ -6,22 +6,15 @@ import numpy as np
 GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
-def erosion_per_iteration():
-    return
-
-if __name__ == "__main__":
+def erosion_per_iteration(seed, erosion_rate):
     # Example usage
-    np.random.seed(42)
+    np.random.seed(seed)
     width, height, ground_height = 21, 101, 101*.1
     
     initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude = 0.1, noise_type = 'white')
     
     ca = CA(width, height, initial_state, neighbor_list=BOTTOM_NEIGHBORS)
-    grids = ca.run_experiment1(100)
-    grids[0] = initial_state
-    # print("initial_grid", initial_state)
-    # print("second grid:", grids[0])
-    # print(grids[23][:, :, 0] == grids[46][:, :, 0])
+    grids = ca.run_experiment1(1000, erosion_rate)
 
     erosion_per_iteration = []
     previous_ground = grids[0][:, :, 0]
@@ -33,11 +26,15 @@ if __name__ == "__main__":
         erosion_per_iteration.append(float(np.sum(np.abs(difference[difference < 0]))))  # Cells where ground height is lowered in the iteration
 
         previous_ground = current_ground
+    return erosion_per_iteration
 
-    print(erosion_per_iteration)
-
+if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
-    plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, marker='o', linestyle='-', color='b')
+
+    for k in np.arange(0.1, 0.5, 0.05):
+        erosion_per_iteration = erosion_per_iteration(42, erosion_rate=k)
+        print(k)
+        plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, marker='o', linestyle='-', color='b', label=f'k={k}')
 
     # Add labels and title
     plt.xlabel('Iteration', fontsize=14)
