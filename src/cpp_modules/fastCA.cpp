@@ -5,7 +5,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include <omp.h>
+// #include <omp.h>
 
 namespace py = pybind11;
 
@@ -16,8 +16,8 @@ double sum(py::array_t<double>& a) {
 
     double suma{0.0};
 
-    #pragma omp parallel
-    #pragma omp for reduction(+:suma)
+    // #pragma omp parallel
+    // #pragma omp for reduction(+:suma)
     for (py::ssize_t i = 0; i < a_arr.shape(0); ++i) {
         for (py::ssize_t j = 0; j < a_arr.shape(1); ++j) {
                 suma += a_arr(i, j);
@@ -127,7 +127,7 @@ void simulate(py::array_t<double>& grids, py::dict params) {
             double slope = M_SQRT1_2 * (grid_arr(prev_step, row, col, GROUND_HEIGHT) - grid_arr(prev_step, row + 1, col, GROUND_HEIGHT));
             add_to_list(slope, row+1, col);
             //bot right
-            if (col < width -1){
+            if (col < width -1){ 
                 double slope = M_SQRT1_2 * (grid_arr(prev_step, row, col, GROUND_HEIGHT) - grid_arr(prev_step, row + 1, col +1, GROUND_HEIGHT));
                 add_to_list(slope, row+1, col+1);
             }
