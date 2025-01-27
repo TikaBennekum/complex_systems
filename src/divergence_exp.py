@@ -76,6 +76,34 @@ def main():
     unmodified_states = ca1.saved_grids
     perturbed_states = ca2.saved_grids
 
+    # Create a 2x2 grid of subplots
+    fig, axs = plt.subplots(2, 2, figsize=(12, 12))
+
+    # Plot for unmodified ground height
+    axs[0, 0].imshow(unmodified_states[-1][:, :, GROUND_HEIGHT], cmap='hot', interpolation='nearest')
+    axs[0, 0].set_title("Unmodified Ground Height")
+    axs[0, 0].axis('off')
+
+    # Plot for perturbed ground height
+    axs[0, 1].imshow(perturbed_states[-1][:, :, GROUND_HEIGHT], cmap='hot', interpolation='nearest')
+    axs[0, 1].set_title("Perturbed Ground Height")
+    axs[0, 1].axis('off')
+
+    # Plot for unmodified water height
+    axs[1, 0].imshow(unmodified_states[-1][:, :, WATER_HEIGHT], cmap='Blues', interpolation='nearest')
+    axs[1, 0].set_title("Unmodified Water Height")
+    axs[1, 0].axis('off')
+
+    # Plot for perturbed water height
+    axs[1, 1].imshow(perturbed_states[-1][:, :, WATER_HEIGHT], cmap='Blues', interpolation='nearest')
+    axs[1, 1].set_title("Perturbed Water Height")
+    axs[1, 1].axis('off')
+
+    # Adjust layout to prevent overlapping
+    plt.tight_layout()
+    plt.show()
+
+
     # Analyze and save results
     analyze_results(unmodified_states, perturbed_states)
 
