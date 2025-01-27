@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     total_erosion = []
     k = np.arange(0.1, 0.5, 0.05)
-    flow_rate = 100
+    flow_rate = 1
 
     for i in k:
         erosion_per_iteration = simulation(42, np.round(i, 2), flow_rate)

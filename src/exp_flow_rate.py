@@ -34,7 +34,8 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    flow_rate = np.arange(20, 180, 20)
+    flow_rate = np.arange(1, 9, 1)
+    print(len)
     k = 0.1
 
     for i in flow_rate:
