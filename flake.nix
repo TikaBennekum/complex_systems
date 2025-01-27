@@ -116,6 +116,8 @@
           pkgs.dbus
           pkgs.kdePackages.qtbase
           pkgs.kdePackages.qttools
+          pkgs.gcc 
+          pkgs.gnumake
         ];
         env =
           {
@@ -206,6 +208,8 @@
             pkgs.dbus
             pkgs.kdePackages.qtbase
             pkgs.kdePackages.qttools
+            pkgs.gcc 
+            pkgs.gnumake
           ];
 
           env = {
