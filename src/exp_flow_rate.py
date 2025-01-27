@@ -6,13 +6,13 @@ import numpy as np
 GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
-def simulation(seed, erosion_rate):
+def simulation(seed, erosion_rate, flow_rate):
     """ Runs simulation of system for certain initial conditions. """
     np.random.seed(seed)
     width, height, ground_height = 21, 101, 101*.1
     initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude = 0.1, noise_type = 'white')
     ca = CA(width, height, initial_state, neighbor_list=BOTTOM_NEIGHBORS)
-    grids = ca.run_experiment1(100, erosion_rate)
+    grids = ca.run_experiment(100, erosion_rate, flow_rate)
 
     erosion_per_iteration = []
     previous_ground = grids[0][:, :, 0]
@@ -28,35 +28,35 @@ def simulation(seed, erosion_rate):
 
 if __name__ == "__main__":
     """
-    First plot: Compares the total erosion over time for different intitial erosion rates.
-    Second plot: Shows total final erosion for linearly different initial erosion rates.
-    Experiment that compares the tota varying the erosion rate 
+    First plot: Compares the total erosion over time for different intitial flow rates.
+    Second plot: Shows total final erosion for linearly different initial flow rates.
     """
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    k = np.arange(0.1, 0.5, 0.1)
+    flow_rate = np.arange(20, 180, 20)
+    k = 0.1
 
-    for i in k:
-        erosion_per_iteration = simulation(42, erosion_rate=np.round(i, 2))
-        print(np.round(i, 2))
-        plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, label=f'Erosion rate={np.round(i, 2)}')
+    for i in flow_rate:
+        erosion_per_iteration = simulation(42, k, i)
+        print(i)
+        total_erosion.append(erosion_per_iteration[-1])
+        plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, label=f'flow rate={i}')
 
     plt.xlabel('Nr of iterations')
     plt.ylabel('Total Erosion')
-    plt.title('Erosion over time')
+    plt.title('Erosion over time vor various flow rates')
     plt.grid(True, linestyle='--')
     plt.legend()
-    plt.savefig('../data/exp_erosion_rate.png')
-    plt.show()
+    plt.savefig('../data/exp_flow_rate.png')
 
     plt.figure(figsize=(10, 6))
-    plt.scatter(k, total_erosion, marker='o')
-    plt.xlabel('Erosion rate')
+    plt.scatter(flow_rate, total_erosion, marker='o')
+    plt.xlabel('Flow rate')
     plt.ylabel('Total Erosion')
-    plt.title('Erosion rate increase -> linear erosion increase')
+    plt.title('Linear flow rate increase -> linear total erosion increase?')
     plt.grid(True, linestyle='--')
-    plt.savefig('../data/exp_erosion_rate2.png')
+    plt.savefig('../data/exp_flow_rate2.png')
     plt.show()
 
 

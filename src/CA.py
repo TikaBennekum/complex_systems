@@ -13,6 +13,7 @@ EROSION_K = 0.1 # erosion rate
 EROSION_C = 0.3
 EROSION_EXPONENT = 2.5
 N = 0.5
+FLOW_RATE = 100
 
 def visualise_height(grid):
     """ Prints out a grid of heights (numbers) to visualise the initial terrain. """
@@ -38,9 +39,10 @@ class CA:
         
         self.neighbor_list = neighbor_list
         
-    def enforce_boundary(self):        
+    def enforce_boundary(self):
+        global FLOW_RATE   
         # Set the center cell at the top row with some water
-        self.grid[0, self.width // 2, WATER_HEIGHT] = 100  # strength water flow for the top-center cell
+        self.grid[0, self.width // 2, WATER_HEIGHT] = FLOW_RATE  # strength water flow for the top-center cell
         self.grid[-1, :, WATER_HEIGHT] = 0  # Arbitrary water height for the top-center cell
         self.grid[0, :, GROUND_HEIGHT] = self.grid[0,-1, GROUND_HEIGHT]  # Arbitrary water height for the top-center cell
         self.grid[-1, :, GROUND_HEIGHT] = 0  # Arbitrary water height for the top-center cell
@@ -136,9 +138,11 @@ class CA:
         # print( np.max(diff), np.min(diff), np.mean(diff))
     
 
-    def run_experiment1(self, num_epochs, erosion_rate):
+    def run_experiment(self, num_epochs, erosion_rate, flow_rate):
         global  EROSION_K
+        global FLOW_RATE
         EROSION_K = erosion_rate
+        FLOW_RATE = flow_rate
 
         grids = np.array([None for _ in range(num_epochs)])
         for i in range(num_epochs):
