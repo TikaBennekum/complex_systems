@@ -35,7 +35,6 @@ if __name__ == "__main__":
 
     total_erosion = []
     flow_rate = np.arange(1, 9, 1)
-    print(len)
     k = 0.1
 
     for i in flow_rate:

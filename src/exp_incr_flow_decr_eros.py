@@ -34,8 +34,10 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    flow_rate = np.arange(20, 180, 20)
-    k = np.arange(0.1, 0.5, 0.05)[::-1]
+    flow_rate = np.arange(2, 9, 1)
+    k = 1 / flow_rate
+    print(flow_rate)
+    print(k)
 
     for i in range(len(flow_rate)):
         erosion_per_iteration = simulation(42, k[i], flow_rate[i])
