@@ -28,8 +28,7 @@ def simulation(seed, erosion_rate, flow_rate):
 
 if __name__ == "__main__":
     """
-    First plot: Compares the total erosion over time for different intitial flow rates.
-    Second plot: Shows total final erosion for linearly different initial flow rates.
+    First plot: Shows total erosion for a simultaneously increasing flow rate and decreasing erosion rate.
     """
     plt.figure(figsize=(10, 6))
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
     plt.xticks(ticks=range(len(flow_rate)), labels=labels, rotation=45, ha='right')  # Add combined labels
     plt.xlabel('k and Flow rate')
     plt.ylabel('Total Erosion')
-    plt.title('Linear flow increase, linear erosion rate decrease-> erosion stays same ??')
+    plt.title('Linear flow increase, linear erosion rate decrease-> erosion stays same ?')
     plt.grid(True, linestyle='--')
     plt.tight_layout()  # Adjust layout to fit rotated labels
     plt.savefig('../data/exp_incr_flow_decr_eros.png')
