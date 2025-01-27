@@ -7,8 +7,9 @@ from initial_state_generation import add_central_flow, generate_initial_slope
 from constants import *
 
 class BarChartVisualizer:
-    def __init__(self, grids):
+    def __init__(self, grids, colors: list[str]):
         self.grids = grids
+        self.colors = colors
         self.current_grid_index = 0
 
         self.renderer = vtk.vtkRenderer()
@@ -78,10 +79,7 @@ class BarChartVisualizer:
 
                     actor = vtk.vtkActor()
                     actor.SetMapper(mapper)
-                    if layer == 0:
-                        actor.GetProperty().SetColor(vtkNamedColors().GetColor3d("peru"))
-                    elif layer == 1:
-                        actor.GetProperty().SetColor(vtkNamedColors().GetColor3d("deepskyblue"))
+                    actor.GetProperty().SetColor(vtkNamedColors().GetColor3d(self.colors[layer]))
                     self.renderer.AddActor(actor)
 
                     self.actors.append((cube, actor, layer))  # Store the cube source and actor
@@ -146,5 +144,5 @@ if __name__ == "__main__":
     
     fastCA.simulate(grids, params)
 
-    visualizer = BarChartVisualizer(grids)
+    visualizer = BarChartVisualizer(grids, ["peru", "deepskyblue"])
     visualizer.run()
