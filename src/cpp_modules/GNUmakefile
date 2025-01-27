@@ -13,7 +13,9 @@ PYTHON_LIBRARY := ${BASE}${PYBIND_SUFFIX}
 
 ALL: ${PYTHON_LIBRARY}
 
-CXXFLAGS := -O3  -Wall -Wextra -shared -std=c++17 -fPIC -fopenmp ${PYBIND_INCLUDES}
+# CXXFLAGS := -O3  -Wall -Wextra -shared -std=c++17 -fPIC -fopenmp ${PYBIND_INCLUDES}
+
+CXXFLAGS := -O3  -Wall -Wextra -shared -std=c++17 -fPIC ${PYBIND_INCLUDES}
 
 %.o : %.cpp
 	g++ ${CXXFLAGS} -c $<
