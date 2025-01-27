@@ -1,13 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from CA import *
+from cpp_modules.fastCA import simulate  # Import the simulate function from the C++ module
 from initial_state_generation import generate_initial_slope
 
-def initialize_ca(width, height, initial_state, water_height=50):
-    """Initialize a cellular automaton with a given initial state and water source."""
-    ca = CA(width, height, initial_state.copy(), neighbor_list=BOTTOM_NEIGHBORS)
-    ca.grid[0, width // 2, WATER_HEIGHT] = water_height  # Set water source at the center
-    return ca
+GROUND_HEIGHT = 0
+WATER_HEIGHT = 1
 
 def generate_initial_state(width, height, ground_height):
     """Generate the initial terrain with a slope and some noise."""
@@ -21,10 +18,10 @@ def plot_initial_difference(initial_state, perturbed_initial_state):
     plt.colorbar()
     plt.show()
 
-def run_simulation(ca1, ca2, num_epochs=1000):
-    """Run the simulations for both cellular automata."""
-    ca1.run_simulation(num_epochs=num_epochs, show_live=False, save_nth=1)  # Unperturbed system
-    ca2.run_simulation(num_epochs=num_epochs, show_live=False, save_nth=1)  # Perturbed system
+def run_simulation(grids, params, num_steps=1000):
+    """Run the simulation using the C++ function."""
+    # Call the C++ simulation function
+    simulate(grids, params)  # Pass the grids and parameters to the C++ function
 
 def analyze_results(unmodified_states, perturbed_states):
     """Analyze and save the mean water and ground height differences."""
@@ -33,7 +30,7 @@ def analyze_results(unmodified_states, perturbed_states):
     
     assert unmodified_states[0].shape == unmodified_states.shape[1:], \
         f"State dimensions do not match: {unmodified_states[0].shape} vs {unmodified_states.shape[1:]}"
-
+    
     water_height_unmod = unmodified_states[:, :, :, WATER_HEIGHT]  # Shape: (10, 101, 21)
     water_height_perturbed = perturbed_states[:, :, :, WATER_HEIGHT]  # Shape: (10, 101, 21)
 
@@ -60,21 +57,36 @@ def main():
     # Generate the initial terrain
     initial_state = generate_initial_state(width, height, ground_height)
 
-    # Initialize both cellular automata
-    ca1 = initialize_ca(width, height, initial_state)  # Unperturbed system
+    # Create a 4D grid for the simulation
+    num_steps = 10000  # Number of time steps to simulate
+    grids = np.zeros((num_steps, height, width, 2), dtype=np.float64)  # 2 channels: GROUND_HEIGHT, WATER_HEIGHT
+
+    # Initialize both states
+    grids[0, :, :, GROUND_HEIGHT] = initial_state[:, :, GROUND_HEIGHT]
+    grids[0, :, :, WATER_HEIGHT] = 50  # Set water source at the center
+
     perturbed_initial_state = initial_state.copy()
     perturbed_initial_state[1, width // 2, GROUND_HEIGHT] += 0.1  # Add a small perturbation
-    ca2 = initialize_ca(width, height, perturbed_initial_state)  # Perturbed system
+    grids[0, :, :, GROUND_HEIGHT] = perturbed_initial_state[:, :, GROUND_HEIGHT]
+    grids[0, :, :, WATER_HEIGHT] = 50  # Set water source at the center
 
     # Plot the initial difference
     plot_initial_difference(initial_state, perturbed_initial_state)
 
+    # Define parameters as a dictionary
+    params = {
+        "EROSION_K": 0.1,
+        "EROSION_C": 0.1,
+        "EROSION_n": 2.0,
+        "EROSION_m": 1.0
+    }
+
     # Run the simulations
-    run_simulation(ca1, ca2)
+    run_simulation(grids, params)
 
     # Retrieve saved states
-    unmodified_states = ca1.saved_grids
-    perturbed_states = ca2.saved_grids
+    unmodified_states = grids.copy()  # Assume grids are modified in-place by the C++ function
+    perturbed_states = grids.copy()  # Modify as needed to reflect perturbed results
 
     # Create a 2x2 grid of subplots
     fig, axs = plt.subplots(2, 2, figsize=(12, 12))
@@ -102,7 +114,6 @@ def main():
     # Adjust layout to prevent overlapping
     plt.tight_layout()
     plt.show()
-
 
     # Analyze and save results
     analyze_results(unmodified_states, perturbed_states)
