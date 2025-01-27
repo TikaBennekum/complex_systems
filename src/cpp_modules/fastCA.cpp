@@ -169,7 +169,7 @@ void simulate(py::array_t<double>& grids, py::dict params) {
             }
             for (auto elem : neg_slopes){
                 auto [slope, nrow, ncol] = elem;
-                auto proportion = std::pow(std::abs(slope), EROSION_n) / slope_sum;
+                auto proportion = std::pow(std::abs(slope), - EROSION_n) / slope_sum;
                 auto discharge = grid_arr(prev_step, row, col, WATER_HEIGHT) * proportion;
                 auto erosion = erosion_rule(discharge, slope);
                 grid_arr(curr_step, row, col, WATER_HEIGHT) -= discharge;
