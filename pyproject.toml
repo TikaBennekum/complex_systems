@@ -17,4 +17,5 @@ dependencies = [
     "snakeviz>=2.2.2",
     "tqdm>=4.67.1",
     "vtk>=9.4.1",
+    "yappi>=1.6.10",
 ]
