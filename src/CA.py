@@ -67,8 +67,9 @@ class CA:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
                     current_cell[WATER_HEIGHT] -= discharge
-                    current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_K, discharge, slope)
-                    self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_K, discharge, slope)
+                    erosion_amount = self.erosion_rule(EROSION_K, discharge, slope)
+                    current_cell[GROUND_HEIGHT] -= erosion_amount
+                    self.grid[ni,nj,GROUND_HEIGHT] += erosion_amount
                     
 
         # If no positive slopes, distribute water evenly to zero-slope neighbors
@@ -79,8 +80,9 @@ class CA:
                 for idx in zero_slope_indices:
                     ni, nj = indices[idx]
                     self.grid[ni][nj][WATER_HEIGHT] += discharge
-                    current_cell[GROUND_HEIGHT] -=  self.erosion_rule(EROSION_K, discharge, slope)
-                    self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_K, discharge, slope)
+                    erosion_amount = self.erosion_rule(EROSION_K, discharge, slope)
+                    current_cell[GROUND_HEIGHT] -=  erosion_amount
+                    self.grid[ni,nj,GROUND_HEIGHT] += erosion_amount
                 current_cell[WATER_HEIGHT] -= discharge * len(zero_slope_indices)
 
         # If all slopes are negative, distribute water proportionally to their magnitudes
@@ -94,8 +96,9 @@ class CA:
                         ni, nj = indices[idx]
                         self.grid[ni][nj][WATER_HEIGHT] += discharge
                         current_cell[WATER_HEIGHT] -= discharge
-                        current_cell[GROUND_HEIGHT] -= self.erosion_rule(EROSION_K, discharge, slope)
-                        self.grid[ni,nj,GROUND_HEIGHT] += self.erosion_rule(EROSION_K, discharge, slope)
+                        erosion_amount = self.erosion_rule(EROSION_K, discharge, slope)
+                        current_cell[GROUND_HEIGHT] -= erosion_amount
+                        self.grid[ni,nj,GROUND_HEIGHT] += erosion_amount
                         
         assert current_cell[WATER_HEIGHT] > - 1e-8
            
