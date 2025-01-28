@@ -75,7 +75,7 @@ class BarChartVisualizer:
         slider_widget = vtk.vtkSliderWidget()
         slider_widget.SetInteractor(self.interactor)
         slider_widget.SetRepresentation(slider_rep)
-        slider_widget.AddObserver("InteractionEvent", self.slider_callback)
+        slider_widget.AddObserver("InteractionEvent", self.slider_callback) # type: ignore
 
         return slider_widget
 
@@ -88,9 +88,9 @@ class BarChartVisualizer:
          - `event`: The event triggering the callback.
         """
         slider_rep = obj.GetRepresentation()
-        value = slider_rep.GetValue()
+        value = slider_rep.GetValue() # type: ignore
         snapped_value = int(round(value))
-        slider_rep.SetValue(snapped_value)  # Snap slider value to an integer
+        slider_rep.SetValue(snapped_value)  # type: ignore # Snap slider value to an integer
         if snapped_value != self.current_grid_index:
             self.current_grid_index = snapped_value
             self.update_chart()
