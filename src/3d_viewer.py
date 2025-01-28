@@ -1,17 +1,25 @@
 import vtk
 from vtk import vtkNamedColors
 import numpy as np
+from typing import List
 from CA import EROSION_C, EROSION_EXPONENT, EROSION_K, N
 from cpp_modules import fastCA
 from initial_state_generation import add_central_flow, generate_initial_slope
 from constants import *
 
 class BarChartVisualizer:
-    def __init__(self, grids, colors: list[str]):
+    def __init__(self, grids: np.ndarray, colors: List[str]):
+        """
+        Initialize the 3D bar chart visualizer.
+
+        :param grids: A 4D numpy array (num_steps, height, width, num_layers) containing the data to visualize.
+        :param colors: A list of color names (strings) corresponding to each layer of the grid.
+        """
         self.grids = grids
         self.colors = colors
-        self.current_grid_index = 0
+        self.current_grid_index = 0  # Index of the grid to visualize
 
+        # VTK renderer, window, and interactor
         self.renderer = vtk.vtkRenderer()
         self.render_window = vtk.vtkRenderWindow()
         self.render_window.AddRenderer(self.renderer)
@@ -19,13 +27,26 @@ class BarChartVisualizer:
         self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.render_window)
 
+        # Slider widget for navigating through grids
         self.slider_widget = self.create_slider()
 
-        self.initialize_chart()  # Initialize chart actors
-        self.update_chart()  # Initial rendering
+        # VTK data structures for rendering
+        self.poly_data = vtk.vtkPolyData()
+        self.points = vtk.vtkPoints()
+        self.cells = vtk.vtkCellArray()
+        self.colors_array = vtk.vtkUnsignedCharArray()
+        self.colors_array.SetNumberOfComponents(3)  # RGB colors
 
+        # Initialize and render the chart
+        self.initialize_chart()
+        self.update_chart()
 
-    def create_slider(self):
+    def create_slider(self) -> vtk.vtkSliderWidget:
+        """
+        Create a slider widget for selecting the grid index.
+
+        :return: A configured vtkSliderWidget.
+        """
         slider_rep = vtk.vtkSliderRepresentation2D()
         slider_rep.SetMinimumValue(0)
         slider_rep.SetMaximumValue(len(self.grids) - 1)
@@ -44,105 +65,141 @@ class BarChartVisualizer:
         slider_widget = vtk.vtkSliderWidget()
         slider_widget.SetInteractor(self.interactor)
         slider_widget.SetRepresentation(slider_rep)
-        slider_widget.AddObserver("InteractionEvent", self.slider_callback)  # Use InteractionEvent for immediate updates
+        slider_widget.AddObserver("InteractionEvent", self.slider_callback)
 
         return slider_widget
 
-    def slider_callback(self, obj, event):
+    def slider_callback(self, obj: vtk.vtkSliderWidget, event: str) -> None:
+        """
+        Callback for the slider widget to update the grid index and refresh the chart.
+
+        :param obj: The slider widget.
+        :param event: The event triggering the callback.
+        """
         slider_rep = obj.GetRepresentation()
         value = slider_rep.GetValue()
-        # Snap to the nearest integer
         snapped_value = int(round(value))
-        slider_rep.SetValue(snapped_value)  # Update slider to display the snapped value
+        slider_rep.SetValue(snapped_value)  # Snap slider value to an integer
         if snapped_value != self.current_grid_index:
             self.current_grid_index = snapped_value
             self.update_chart()
 
+    def initialize_chart(self) -> None:
+        """
+        Initialize the chart with a single actor and mapper.
+        """
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputData(self.poly_data)
 
-    def initialize_chart(self):
-        """Create the initial bar chart actors for the first grid and store them."""
-        self.actors = []  # Store references to all actors
-        grid = self.grids[0]  # Use the first grid to initialize
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+
+        self.renderer.AddActor(actor)
+        self.renderer.ResetCamera()
+
+    def update_chart(self) -> None:
+        """
+        Update the chart by modifying the polydata based on the current grid.
+        """
+        self.points.Reset()
+        self.cells.Reset()
+        self.colors_array.Reset()
+
+        grid = self.grids[self.current_grid_index]
         num_rows, num_cols, num_layers = grid.shape
+
+        # Track the accumulated height for stacking
+        base_heights = np.zeros((num_rows, num_cols))
 
         for i in range(num_rows):
             for j in range(num_cols):
                 for layer in range(num_layers):
-                    cube = vtk.vtkCubeSource()
-                    cube.SetXLength(0.8)
-                    cube.SetYLength(0.8)
-                    cube.SetZLength(1.0)  # Initial height
-                    cube.SetCenter(i, j, 0.5)  # Initial center (half the height)
+                    height = grid[i, j, layer]
+                    if height > 1e-6:  # Skip zero or near-zero heights
+                        self.add_cube(i, j, base_heights[i, j], height, layer)
+                        base_heights[i, j] += height
 
-                    mapper = vtk.vtkPolyDataMapper()
-                    mapper.SetInputConnection(cube.GetOutputPort())
+        # Update polydata with new points, cells, and colors
+        self.poly_data.SetPoints(self.points)
+        self.poly_data.SetPolys(self.cells)
+        self.poly_data.GetCellData().SetScalars(self.colors_array)
+        self.poly_data.Modified()
 
-                    actor = vtk.vtkActor()
-                    actor.SetMapper(mapper)
-                    actor.GetProperty().SetColor(vtkNamedColors().GetColor3d(self.colors[layer]))
-                    self.renderer.AddActor(actor)
+        self.render_window.Render()
 
-                    self.actors.append((cube, actor, layer))  # Store the cube source and actor
+    def add_cube(self, i: int, j: int, base_height: float, height: float, layer: int) -> None:
+        """
+        Add a single cube to the polydata.
 
-        self.renderer.ResetCamera()  # Set up the camera initially
+        :param i: Row index in the grid.
+        :param j: Column index in the grid.
+        :param base_height: Height at the bottom of this cube.
+        :param height: Height of the cube.
+        :param layer: Layer index (used for color selection).
+        """
+        x_min, x_max = i - 0.4, i + 0.4
+        y_min, y_max = j - 0.4, j + 0.4
+        z_min, z_max = base_height, base_height + height
 
-    def update_chart(self):
-        """Update the bar chart heights and positions without recreating actors."""
-        grid = self.grids[self.current_grid_index]
-        # num_rows, num_cols = grid.shape
-        # max_value = np.max(grid) if np.max(grid) > 0 else 1  # Avoid divide-by-zero
+        # Add points for the cube
+        start_id = self.points.GetNumberOfPoints()
+        vertices = [
+            (x_min, y_min, z_min), (x_max, y_min, z_min), (x_max, y_max, z_min), (x_min, y_max, z_min),  # Bottom
+            (x_min, y_min, z_max), (x_max, y_min, z_max), (x_max, y_max, z_max), (x_min, y_max, z_max),  # Top
+        ]
+        for vertex in vertices:
+            self.points.InsertNextPoint(vertex)
 
-        for (i, j, _), (cube, actor, layer) in zip(np.ndindex(grid.shape), self.actors):
-            height = grid[i, j, layer]
-            if layer == 1:
-                height *= 20
-            offset = sum(grid[i, j, :layer])
-            cube.SetZLength(height)  # Scale height
-            cube.SetCenter(i, j, height / 2.0 + offset)  # Update center
-            if layer == 1 and height < 1e-6:
-                actor.VisibilityOff()
-            elif layer == 1:
-                actor.VisibilityOn()
+        # Define the six faces of the cube
+        faces = [
+            (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7),  # Side faces
+            (0, 1, 2, 3),  # Bottom face
+            (4, 5, 6, 7),  # Top face
+        ]
+        for face in faces:
+            quad = vtk.vtkQuad()
+            for k in range(4):
+                quad.GetPointIds().SetId(k, start_id + face[k])
+            self.cells.InsertNextCell(quad)
 
-        self.render_window.Render()  # Refresh the window
+        # Assign color based on the layer
+        color = vtkNamedColors().GetColor3ub(self.colors[layer])
+        for _ in faces:
+            self.colors_array.InsertNextTypedTuple(color)
 
-
-
-    def run(self):
+    def run(self) -> None:
+        """
+        Start the visualization.
+        """
         self.slider_widget.EnabledOn()
         self.interactor.Initialize()
         self.render_window.Render()
         self.interactor.Start()
 
-# Example usage:
+
+# Example usage
 if __name__ == "__main__":
-    # Generate some example 2D grids
+    # Parameters for grid generation
     np.random.seed(42)
-    width, height, ground_height, num_steps = 21, 101, 101*.1, 10
-    
-    initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude = 0.2, noise_type = 'white')
-    
+    width, height, ground_height, num_steps = 21, 101, 101 * 0.1, 100_000
+
+    # Generate the initial grid state
+    initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude=0.2, noise_type='white')
     add_central_flow(initial_state, 1)
-    
-    
+
+    # Create grids and simulate data
     grids = np.zeros([num_steps, height, width, NUM_CELL_FLOATS])
     grids[0] = initial_state
-    
-    
-    # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
-    # plt.colorbar()
-    
-    # plt.savefig('data/cpptest0.png')
-    
+
     params = {
         "EROSION_K": EROSION_K,
         "EROSION_C": EROSION_C,
         "EROSION_n": N,
         "EROSION_m": EROSION_EXPONENT,
     }
-    
+
     fastCA.simulate(grids, params)
 
-    visualizer = BarChartVisualizer(grids, ["peru", "deepskyblue"])
+    # Visualize the data
+    visualizer = BarChartVisualizer(grids[::1000], ["peru", "deepskyblue"])
     visualizer.run()
