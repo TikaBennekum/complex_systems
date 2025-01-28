@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains the code to run the system in C++, resulting in faster simulations.
+"""
+
 from CA import *
 from initial_state_generation import generate_initial_slope, add_central_flow
 import matplotlib.pyplot as plt

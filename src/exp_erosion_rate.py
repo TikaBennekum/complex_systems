@@ -1,3 +1,13 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file performs an experiment. 
+        It varies the erosion rate, keeping other parameter values constant,
+        resulting in the erosion rate versus the total erosion.
+"""
+
 from CA import *
 from initial_state_generation import generate_initial_slope
 import matplotlib.pyplot as plt

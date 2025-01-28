@@ -1,3 +1,12 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file performs an experiment. 
+        It increases the slope linearly while increasing the erosion rate linearly.
+"""
+
 from CA import *
 from initial_state_generation import generate_initial_slope
 import matplotlib.pyplot as plt

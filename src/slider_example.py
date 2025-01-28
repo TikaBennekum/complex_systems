@@ -1,4 +1,11 @@
-## copied from https://examples.vtk.org/site/PythonicAPI/Widgets/Slider2D/
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains an exmaple for a slider.
+        copied from https://examples.vtk.org/site/PythonicAPI/Widgets/Slider2D/
+"""
 
 from dataclasses import dataclass
 from typing import Tuple

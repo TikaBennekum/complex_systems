@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains a  3D version of our system.
+"""
+
 import vtk
 from vtk import vtkNamedColors
 import numpy as np

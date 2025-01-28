@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        File to profile the code.
+"""
+
 from CA import CA, BOTTOM_NEIGHBORS
 from initial_state_generation import generate_initial_slope
 # from cProfile import Profile

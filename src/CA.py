@@ -1,3 +1,12 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains the system with which simulations are run and 
+        experiments are performed.
+"""
+
 from typing import Any
 import numpy as np
 from numpy.typing import NDArray
@@ -144,6 +153,9 @@ class CA:
     
 
     def run_experiment(self, num_epochs, erosion_rate, flow_rate):
+        """
+        Function to run an experiment: used for the exp files.
+        """
         global  EROSION_K
         global FLOW_RATE
         EROSION_K = erosion_rate

@@ -1,3 +1,11 @@
+/*
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains the system in C++.
+*/
+
 #include <iostream>
 #include <map>
 #include <vector>
