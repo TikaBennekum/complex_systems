@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
     # plt.colorbar()
     
-    plt.savefig('data/cpptest0.png')
+    plt.savefig('../data/cpptest0.png')
     
     params = {
         "EROSION_K": EROSION_K,
