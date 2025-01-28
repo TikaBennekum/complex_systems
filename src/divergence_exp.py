@@ -1,122 +1,162 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from cpp_modules.fastCA import simulate  # Import the simulate function from the C++ module
-from initial_state_generation import generate_initial_slope
+from cpp_modules import fastCA
+from CA import *
+from initial_state_generation import generate_initial_slope, add_central_flow
+from constants import *
 
-GROUND_HEIGHT = 0
-WATER_HEIGHT = 1
+class Experiment:
+    def __init__(self, width, height, ground_height, init_water_height, num_steps, perturbation_factor):
+        # Set simulation parameters
+        self.width = width
+        self.height = height
+        self.ground_height = ground_height
+        self.init_water_height = init_water_height
+        self.num_steps = num_steps
+        self.perturbation_factor = perturbation_factor
 
-def generate_initial_state(width, height, ground_height):
-    """Generate the initial terrain with a slope and some noise."""
-    return generate_initial_slope(height, width, ground_height, noise_amplitude=0.1, noise_type='white')
+        # Initialize grids
+        self.grids_unperturbed = np.zeros([num_steps, height, width, NUM_CELL_FLOATS])
+        self.grids_perturbed = np.zeros_like(self.grids_unperturbed)
 
-def plot_initial_difference(initial_state, perturbed_initial_state):
-    """Plot the initial difference in ground height."""
-    initial_diff = np.abs(initial_state - perturbed_initial_state)
-    plt.imshow(initial_diff[:, :, GROUND_HEIGHT], cmap='hot', interpolation='nearest')
-    plt.title("Initial Ground Height Difference")
-    plt.colorbar()
-    plt.show()
+        # Define erosion parameters
+        self.params = {
+            "EROSION_K": EROSION_K,
+            "EROSION_C": EROSION_C,
+            "EROSION_n": N,
+            "EROSION_m": EROSION_EXPONENT,
+        }
 
-def run_simulation(grids, params, num_steps=1000):
-    """Run the simulation using the C++ function."""
-    # Call the C++ simulation function
-    simulate(grids, params)  # Pass the grids and parameters to the C++ function
+    def initialize_states(self):
+        """Generate initial states for the simulation."""
+        # Generate initial ground slope with optional noise
+        initial_state = generate_initial_slope(
+            self.height, self.width, 
+            slope_top=self.ground_height, slope_bot=0, 
+            noise_amplitude=0.2, noise_type='white'
+        )
+        # Add central flow for water
+        initial_state = add_central_flow(initial_state, flow_amount=self.init_water_height)
 
-def analyze_results(unmodified_states, perturbed_states):
-    """Analyze and save the mean water and ground height differences."""
-    assert unmodified_states.shape == perturbed_states.shape, \
-        f"State dimensions do not match: {unmodified_states.shape} vs {perturbed_states.shape}"
-    
-    assert unmodified_states[0].shape == unmodified_states.shape[1:], \
-        f"State dimensions do not match: {unmodified_states[0].shape} vs {unmodified_states.shape[1:]}"
-    
-    water_height_unmod = unmodified_states[:, :, :, WATER_HEIGHT]  # Shape: (10, 101, 21)
-    water_height_perturbed = perturbed_states[:, :, :, WATER_HEIGHT]  # Shape: (10, 101, 21)
+        # Set initial states for unperturbed and perturbed grids
+        self.grids_unperturbed[0] = initial_state.copy()
+        self.grids_perturbed[0] = initial_state.copy()
 
-    ground_height_unmod = unmodified_states[:, :, :, GROUND_HEIGHT]  # Shape: (10, 101, 21)
-    ground_height_perturbed = perturbed_states[:, :, :, GROUND_HEIGHT]  # Shape: (10, 101, 21)
+    def apply_perturbation(self, max_perturbation=0.1):
+        """
+        Apply a fixed 3x3 perturbation window two rows below the water source.
+        The window contains random values between -max_perturbation and max_perturbation.
+        """
+        # Define the fixed window size
+        window_size = 3
 
-    water_diff = np.abs(water_height_unmod - water_height_perturbed)
-    ground_diff = np.abs(ground_height_unmod - ground_height_perturbed)
+        # Generate the perturbation window
+        perturbation_window = np.random.uniform(
+            -max_perturbation, max_perturbation, (window_size, window_size)
+        )
 
-    mean_water_diff = np.mean(water_diff, axis=(1, 2))  # Shape: (10,)
-    mean_ground_diff = np.mean(ground_diff, axis=(1, 2))  # Shape: (10,)
+        # Define the center of the window (two rows below the water source at row 0)
+        center_row = 2  # Two rows below the water source
+        center_col = self.width // 2  # Center column
 
-    np.save('data/mean_water_height_diff.npy', mean_water_diff)
-    np.save('data/mean_ground_height_diff.npy', mean_ground_diff)
+        # Compute the start and end indices of the window
+        start_row = max(center_row - window_size // 2, 0)
+        start_col = max(center_col - window_size // 2, 0)
+        end_row = start_row + window_size
+        end_col = start_col + window_size
 
-def main():
-    """Main function to run the simulation."""
-    # Set random seed for reproducibility
-    np.random.seed(42)
+        # Ensure the window fits within the grid boundaries
+        end_row = min(end_row, self.height)
+        end_col = min(end_col, self.width)
 
-    # Define the grid dimensions and initial ground height
-    width, height, ground_height = 21, 101, 101 * 0.1
+        # Apply the perturbation
+        self.grids_perturbed[:, start_row:end_row, start_col:end_col, GROUND_HEIGHT] += \
+            perturbation_window[:end_row - start_row, :end_col - start_col]
 
-    # Generate the initial terrain
-    initial_state = generate_initial_state(width, height, ground_height)
+    def plot_initial_states(self):
+        """Plot the initial states of the grids."""
+        # Plot unperturbed ground height
+        plt.imshow(self.grids_unperturbed[0, :, :, GROUND_HEIGHT])
+        plt.colorbar()
+        plt.title("Initial State - Unperturbed")
+        plt.show()
 
-    # Create a 4D grid for the simulation
-    num_steps = 10000  # Number of time steps to simulate
-    grids = np.zeros((num_steps, height, width, 2), dtype=np.float64)  # 2 channels: GROUND_HEIGHT, WATER_HEIGHT
+        # Plot perturbed ground height
+        plt.imshow(self.grids_perturbed[0, :, :, GROUND_HEIGHT])
+        plt.colorbar()
+        plt.title("Initial State - Perturbed")
+        plt.show()
 
-    # Initialize both states
-    grids[0, :, :, GROUND_HEIGHT] = initial_state[:, :, GROUND_HEIGHT]
-    grids[0, :, :, WATER_HEIGHT] = 50  # Set water source at the center
+    def plot_initial_difference(self):
+        """Plot the initial difference in ground height between perturbed and unperturbed grids."""
+        difference = self.grids_perturbed[0, :, :, GROUND_HEIGHT] - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        plt.imshow(difference, cmap="seismic", interpolation="nearest")
+        plt.colorbar(label="Height Difference")
+        plt.title("Initial Terrain Height Difference (Time 0)")
+        plt.show()
 
-    perturbed_initial_state = initial_state.copy()
-    perturbed_initial_state[1, width // 2, GROUND_HEIGHT] += 0.1  # Add a small perturbation
-    grids[0, :, :, GROUND_HEIGHT] = perturbed_initial_state[:, :, GROUND_HEIGHT]
-    grids[0, :, :, WATER_HEIGHT] = 50  # Set water source at the center
+    def plot_time_0_difference(self):
+        """
+        Visualize the difference in ground height at time 0 
+        between the unperturbed and perturbed simulations.
+        """
+        ground_diff = self.grids_perturbed[0, :, :, GROUND_HEIGHT] - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        plt.figure(figsize=(8, 6))
+        plt.imshow(ground_diff, cmap="seismic", interpolation="nearest")
+        plt.colorbar(label="Height Difference")
+        plt.title("Ground Height Difference at Time 0")
+        plt.xlabel("Width")
+        plt.ylabel("Height")
+        plt.show()
 
-    # Plot the initial difference
-    plot_initial_difference(initial_state, perturbed_initial_state)
+    def run_simulation(self):
+        """Run the simulation for both unperturbed and perturbed grids."""
+        fastCA.simulate(self.grids_unperturbed, self.params)  # Unperturbed simulation
+        fastCA.simulate(self.grids_perturbed, self.params)  # Perturbed simulation
 
-    # Define parameters as a dictionary
-    params = {
-        "EROSION_K": 0.1,
-        "EROSION_C": 0.1,
-        "EROSION_n": 2.0,
-        "EROSION_m": 1.0
-    }
+    def save_results(self, unperturbed_file, perturbed_file):
+        """Save the simulation results to .npy files."""
+        np.save(unperturbed_file, self.grids_unperturbed)
+        np.save(perturbed_file, self.grids_perturbed)
 
-    # Run the simulations
-    run_simulation(grids, params)
+    def run(self):
+        """Execute the full workflow."""
+        print("Initializing states...")
+        self.initialize_states()
+        print("Initial states generated.")
 
-    # Retrieve saved states
-    unmodified_states = grids.copy()  # Assume grids are modified in-place by the C++ function
-    perturbed_states = grids.copy()  # Modify as needed to reflect perturbed results
+        print("Applying perturbation...")
+        self.apply_perturbation()
+        print("Perturbation applied.")
 
-    # Create a 2x2 grid of subplots
-    fig, axs = plt.subplots(2, 2, figsize=(12, 12))
+        print("Plotting initial states...")
+        self.plot_initial_states()
 
-    # Plot for unmodified ground height
-    axs[0, 0].imshow(unmodified_states[-1][:, :, GROUND_HEIGHT], cmap='hot', interpolation='nearest')
-    axs[0, 0].set_title("Unmodified Ground Height")
-    axs[0, 0].axis('off')
+        print("Visualizing initial height difference...")
+        self.plot_initial_difference()
 
-    # Plot for perturbed ground height
-    axs[0, 1].imshow(perturbed_states[-1][:, :, GROUND_HEIGHT], cmap='hot', interpolation='nearest')
-    axs[0, 1].set_title("Perturbed Ground Height")
-    axs[0, 1].axis('off')
+        print("Visualizing ground height difference at time 0...")
+        self.plot_time_0_difference()
 
-    # Plot for unmodified water height
-    axs[1, 0].imshow(unmodified_states[-1][:, :, WATER_HEIGHT], cmap='Blues', interpolation='nearest')
-    axs[1, 0].set_title("Unmodified Water Height")
-    axs[1, 0].axis('off')
+        print("Running simulations...")
+        self.run_simulation()
+        print("Simulations completed.")
 
-    # Plot for perturbed water height
-    axs[1, 1].imshow(perturbed_states[-1][:, :, WATER_HEIGHT], cmap='Blues', interpolation='nearest')
-    axs[1, 1].set_title("Perturbed Water Height")
-    axs[1, 1].axis('off')
+        print("Saving results...")
+        self.save_results('data/unperturbed_data.npy', 'data/perturbed_data.npy')
+        print("Results saved.")
 
-    # Adjust layout to prevent overlapping
-    plt.tight_layout()
-    plt.show()
-
-    # Analyze and save results
-    analyze_results(unmodified_states, perturbed_states)
 
 if __name__ == "__main__":
-    main()
+    # Set parameters for the simulation
+    exp = Experiment(
+        width=21,
+        height=101,
+        ground_height=101,
+        init_water_height=25,
+        num_steps=1000,
+        perturbation_factor=0.1
+    )
+
+    # Run the full simulation workflow
+    exp.run()
