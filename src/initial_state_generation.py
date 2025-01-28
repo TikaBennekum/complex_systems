@@ -6,30 +6,37 @@ GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
 
-def generate_initial_slope(height, width, slope_top, slope_bot = 0, noise_amplitude = 0, noise_type = 'perlin'):
-    
+def generate_initial_slope(
+    height: int,
+    width: int,
+    slope_top: float,
+    slope_bot: float = 0,
+    noise_amplitude: float = 0,
+    noise_type="perlin",
+):
+
     grid = np.zeros([height, width, NUM_CELL_FLOATS])
     height_gradient = np.linspace(slope_top, slope_bot, height)
     for i in range(height):
         grid[i, :, GROUND_HEIGHT] = height_gradient[i]
 
-    if noise_type == 'white':
-        grid[:,:,GROUND_HEIGHT] += np.random.normal(0, noise_amplitude, size=[height, width])
-    elif noise_type== 'perlin':
-        grid[:,:,GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)       
-    
+    if noise_type == "white":
+        grid[:, :, GROUND_HEIGHT] += np.random.normal(
+            0, noise_amplitude, size=[height, width]
+        )
+    elif noise_type == "perlin":
+        grid[:, :, GROUND_HEIGHT] += perlin_noise(height, width, noise_amplitude)
+
     return grid
 
 
+def add_central_flow(grid, flow_amount):
+    grid[0, grid.shape[1] // 2, WATER_HEIGHT] = flow_amount
 
-def add_central_flow(grid, flow_amount):    
-    grid[0, grid.shape[1] // 2, WATER_HEIGHT] = flow_amount  
-    
     return grid
-    
-    
-    
-def perlin_noise(height, width, max_amplitude):
+
+
+def perlin_noise(height: int, width: int, max_amplitude: float):
     """
     Generates a grid of Perlin noise to be added to the grid of ground heights.
 
@@ -50,7 +57,16 @@ def perlin_noise(height, width, max_amplitude):
     noise_map = np.zeros((height, width))
     for i in range(height):
         for j in range(width):
-            noise_map[i][j] = pnoise2(i / 10, j / 10, octaves=3, persistence=0.4, lacunarity=2.2, repeatx=width, repeaty=height, base=25)
+            noise_map[i][j] = pnoise2(
+                i / 10,
+                j / 10,
+                octaves=3,
+                persistence=0.4,
+                lacunarity=2.2,
+                repeatx=width,
+                repeaty=height,
+                base=25,
+            )
     normalized_noise_map = (noise_map + 1) / 2
     scaled_map = normalized_noise_map * max_amplitude
     return scaled_map
