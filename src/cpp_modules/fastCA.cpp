@@ -76,7 +76,7 @@ void simulate(py::array_t<double> &grids, py::dict params)
     ssize_t GROUND_HEIGHT = 0;
     ssize_t WATER_HEIGHT = 1;
 
-    auto enforce_boundary = [&](ssize_t curr_step, ssize_t prev_step)
+    auto enforce_boundary = [&](ssize_t curr_step)
     {
         for (ssize_t col = 0; col < width; col++)
         {
@@ -85,12 +85,20 @@ void simulate(py::array_t<double> &grids, py::dict params)
             grid_arr(curr_step, height - 1, col, WATER_HEIGHT) = grid_arr(0, height - 1, col, WATER_HEIGHT);
             grid_arr(curr_step, height - 1, col, GROUND_HEIGHT) = grid_arr(0, height - 1, col, GROUND_HEIGHT);
         }
-        for (ssize_t row = 1; row < height - 1; row++)
+        return;
+    };
+
+    auto copy_state = [&](ssize_t to_step, ssize_t from_step)
+    {
+        if (to_step != from_step)
         {
-            for (ssize_t col = 0; col < width; col++)
+            for (ssize_t row = 0; row < height; row++)
             {
-                grid_arr(curr_step, row, col, WATER_HEIGHT) = grid_arr(prev_step, row, col, WATER_HEIGHT);
-                grid_arr(curr_step, row, col, GROUND_HEIGHT) = grid_arr(prev_step, row, col, GROUND_HEIGHT);
+                for (ssize_t col = 0; col < width; col++)
+                {
+                    grid_arr(to_step, row, col, WATER_HEIGHT) = grid_arr(from_step, row, col, WATER_HEIGHT);
+                    grid_arr(to_step, row, col, GROUND_HEIGHT) = grid_arr(from_step, row, col, GROUND_HEIGHT);
+                }
             }
         }
         return;
@@ -201,7 +209,7 @@ void simulate(py::array_t<double> &grids, py::dict params)
     for (ssize_t step = 1; step < num_steps; step++)
     {
         auto prev_step = step - 1;
-        enforce_boundary(step, prev_step);
+        copy_state(step, prev_step);
 
         // std::cout << step << std::endl;
         for (ssize_t row = 0; row < height - 1; row++)
@@ -211,6 +219,8 @@ void simulate(py::array_t<double> &grids, py::dict params)
                 apply_rule(step, prev_step, row, col);
             }
         }
+        enforce_boundary(step);
+
     }
 
     return;
