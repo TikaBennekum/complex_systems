@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file keeps track of important information from the simulations.
+"""
+
 import numpy as np
 from numpy.typing import NDArray
 from CA import BOTTOM_NEIGHBORS, CA

@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains the code to visualis our system in a 2D video.
+"""
+
 import numpy as np
 from CA import *
 from constants import *

@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        This file contains a 3D viewer class for our system.
+"""
+
 import vtk
 from vtk import vtkNamedColors
 import numpy as np
@@ -8,12 +16,13 @@ from initial_state_generation import add_central_flow, generate_initial_slope
 from constants import *
 
 class BarChartVisualizer:
-    def __init__(self, grids: np.ndarray, colors: List[str]):
+    def __init__(self, grids: np.ndarray, colors: List[str] = ["peru", "deepskyblue"]):
         """
         Initialize the 3D bar chart visualizer.
 
-        :param grids: A 4D numpy array (num_steps, height, width, num_layers) containing the data to visualize.
-        :param colors: A list of color names (strings) corresponding to each layer of the grid.
+        ## Inputs
+         - `grids`: A 4D numpy array (num_steps, height, width, num_layers) containing the data to visualize. Please don't input to many timesteps I am not sure how well that will work.
+         - `colors`: A list of color names (strings) corresponding to each layer of the grid.
         """
         self.grids = grids
         self.colors = colors
@@ -45,7 +54,8 @@ class BarChartVisualizer:
         """
         Create a slider widget for selecting the grid index.
 
-        :return: A configured vtkSliderWidget.
+        ## Returns 
+         - A configured `vtkSliderWidget`.
         """
         slider_rep = vtk.vtkSliderRepresentation2D()
         slider_rep.SetMinimumValue(0)
@@ -65,7 +75,7 @@ class BarChartVisualizer:
         slider_widget = vtk.vtkSliderWidget()
         slider_widget.SetInteractor(self.interactor)
         slider_widget.SetRepresentation(slider_rep)
-        slider_widget.AddObserver("InteractionEvent", self.slider_callback)
+        slider_widget.AddObserver("InteractionEvent", self.slider_callback) # type: ignore
 
         return slider_widget
 
@@ -73,13 +83,14 @@ class BarChartVisualizer:
         """
         Callback for the slider widget to update the grid index and refresh the chart.
 
-        :param obj: The slider widget.
-        :param event: The event triggering the callback.
+        ## Inputs
+         - `obj`: The slider widget.
+         - `event`: The event triggering the callback.
         """
         slider_rep = obj.GetRepresentation()
-        value = slider_rep.GetValue()
+        value = slider_rep.GetValue() # type: ignore
         snapped_value = int(round(value))
-        slider_rep.SetValue(snapped_value)  # Snap slider value to an integer
+        slider_rep.SetValue(snapped_value)  # type: ignore # Snap slider value to an integer
         if snapped_value != self.current_grid_index:
             self.current_grid_index = snapped_value
             self.update_chart()
@@ -131,11 +142,12 @@ class BarChartVisualizer:
         """
         Add a single cube to the polydata.
 
-        :param i: Row index in the grid.
-        :param j: Column index in the grid.
-        :param base_height: Height at the bottom of this cube.
-        :param height: Height of the cube.
-        :param layer: Layer index (used for color selection).
+        ## Inputs
+         - `i`: Row index in the grid.
+         - `j`: Column index in the grid.
+         - `base_height`: Height at the bottom of this cube.
+         - `height`: Height of the cube.
+         - `layer`: Layer index (used for color selection).
         """
         x_min, x_max = i - 0.4, i + 0.4
         y_min, y_max = j - 0.4, j + 0.4
@@ -201,5 +213,5 @@ if __name__ == "__main__":
     fastCA.simulate(grids, params)
 
     # Visualize the data
-    visualizer = BarChartVisualizer(grids[::1000], ["peru", "deepskyblue"])
+    visualizer = BarChartVisualizer(grids[::1000])
     visualizer.run()

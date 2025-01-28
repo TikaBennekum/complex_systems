@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        File to test thes system interactively.
+"""
+
 import numpy as np
 import vtk
 from vtkmodules.vtkCommonColor import vtkNamedColors
