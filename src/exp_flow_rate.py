@@ -6,11 +6,11 @@ import numpy as np
 GROUND_HEIGHT = 0
 WATER_HEIGHT = 1
 
-def simulation(seed, erosion_rate, flow_rate):
+def simulation(seed, erosion_rate, flow_rate, slope=101*0.1):
     """ Runs simulation of system for certain initial conditions. """
     np.random.seed(seed)
-    width, height, ground_height = 21, 101, 101*.1
-    initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude = 0.1, noise_type = 'white')
+    width, height = 21, 101
+    initial_state = generate_initial_slope(height, width, slope, noise_amplitude = 0.1, noise_type = 'white')
     ca = CA(width, height, initial_state, neighbor_list=BOTTOM_NEIGHBORS)
     grids = ca.run_experiment(100, erosion_rate, flow_rate)
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     plt.scatter(flow_rate, total_erosion, marker='o')
     plt.xlabel('Flow rate')
     plt.ylabel('Total Erosion')
-    plt.title('Linear flow rate increase -> linear total erosion increase?')
+    plt.title('Linear flow rate increase -> linear total erosion increase')
     plt.grid(True, linestyle='--')
     plt.savefig('../data/exp_flow_rate2.png')
     plt.show()

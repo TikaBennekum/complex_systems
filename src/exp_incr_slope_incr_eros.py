@@ -33,30 +33,31 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    flow_rate = np.arange(2, 9, 1)
-    k = 1 / flow_rate
-    k = k
-    print(flow_rate)
+    flow_rate = 1
+    slope = np.arange(101*0.1, 101*0.15, 0.5)
+    k = 1 / slope
+    k = np.round(k, 3)
+    print(slope)
     print(k)
 
-    for i in range(len(flow_rate)):
-        erosion_per_iteration = simulation(42, k[i], flow_rate[i])
+    for i in range(len(slope)):
+        erosion_per_iteration = simulation(42, k[i], flow_rate, slope[i])
         print(i)
         total_erosion.append(erosion_per_iteration[-1])
 
     # Create combined labels for x-axis
-    labels = [f"k: {k_val:.2f}, flow_rate: {flow_rate_val}" for k_val, flow_rate_val in zip(k, flow_rate)]
+    labels = [f"k: {k_val:.2f}, slope: {np.round(slope_val, 3)}" for k_val, slope_val in zip(k, slope)]
 
     # Plot data
     plt.figure(figsize=(10, 6))
-    plt.scatter(range(len(flow_rate)), total_erosion, marker='o')  # Use indices for x-values
-    plt.xticks(ticks=range(len(flow_rate)), labels=labels, rotation=45, ha='right')  # Add combined labels
-    plt.xlabel('k and Flow rate')
+    plt.scatter(range(len(slope)), total_erosion, marker='o')  # Use indices for x-values
+    plt.xticks(ticks=range(len(slope)), labels=labels, rotation=45, ha='right')  # Add combined labels
+    plt.xlabel('k and slope')
     plt.ylabel('Total Erosion')
-    plt.title('Linear flow increase, linear erosion rate decrease-> ?')
+    plt.title('Linear slope increase, linear erosion rate increase -> ?')
     plt.grid(True, linestyle='--')
     plt.tight_layout()  # Adjust layout to fit rotated labels
-    plt.savefig('../data/exp_incr_flow_decr_eros.png')
+    plt.savefig('../data/exp_incr_slope_incr_eros.png')
     plt.show()
 
 
