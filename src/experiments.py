@@ -20,7 +20,8 @@ def simulation(seed, erosion_rate, flow_rate, slope=101*0.1):
     width, height = 21, 101
     initial_state = generate_initial_slope(height, width, slope, noise_amplitude = 0.1, noise_type = 'white')
     ca = CA(width, height, initial_state, neighbor_list=BOTTOM_NEIGHBORS)
-    grids = ca.run_experiment(100, erosion_rate, flow_rate)
+    nr_of_iterations = 1000
+    grids = ca.run_experiment(nr_of_iterations, erosion_rate, flow_rate)
 
     erosion_per_iteration = []
     previous_ground = grids[0][:, :, 0]
