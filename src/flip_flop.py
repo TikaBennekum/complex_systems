@@ -86,21 +86,36 @@ def stream_number_progression(width, height, ground_height, num_steps, noise_amp
 
     grids = run_fastCA(initial_state, num_steps, 1_000)
 
-    for threshold in [1e-6, 1e-4, 1e-2]:
-        stream_list = []
-        for grid in grids:
-            stream_list.append(get_stream_number(grid, threshold=threshold))
+    # for threshold in [1e-6, 1e-4, 1e-2]:
+    threshold = 1e-6
+    stream_list = []
+    for grid in grids:
+        stream_list.append(get_stream_number(grid, threshold=threshold))
 
-        plt.plot(np.arange(grids.shape[0]), stream_list, "-", label=f"{threshold = }")
+    plt.plot(np.arange(grids.shape[0]), stream_list, "-", label=f"{threshold = }")
+        
     plt.legend()
     plt.savefig("videos/stream_count.png")
-    plt.show()
+    plt.close()
+
+    derivative = abs(np.gradient(stream_list))
+    print(derivative)
+    plt.plot(np.arange(len(derivative)), derivative)
+    plt.savefig("videos/stream_derivative.png")
+    plt.close()
+
+    div_hist, bins = np.histogram(derivative, 20)
+    plt.plot(bins[:-1], div_hist, "o")
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.savefig("videos/stream_hist.png")
+    plt.close()
 
     visualizer = BarChartVisualizer(grids)
     visualizer.run()
 
 
-width, height, ground_height, num_steps = 21, 101, 51 * 0.1, 1_000_000
+width, height, ground_height, num_steps = 21, 101, 51 * 0.1, 200_000
 noise_amplitude = 0.2
 
 stream_number_progression(width, height, ground_height, num_steps, noise_amplitude, seed=42)
