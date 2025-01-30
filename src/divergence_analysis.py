@@ -1,150 +1,163 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-class ExpAnalysis:
-    def __init__(self, unperturbed_file, perturbed_file):
-        self.unperturbed_data = np.load(unperturbed_file)
-        self.perturbed_data = np.load(perturbed_file)
+import numpy as np
+import matplotlib.pyplot as plt
 
-        self.copy_unperturbed_data = self.unperturbed_data.copy()
-        self.copy_perturbed_data = self.perturbed_data.copy()
+def plot_initial_states():
+    """
+    Plot the initial states of the grids.
 
-        print("Shape of Unperturbed Data:", self.unperturbed_data.shape)
-        print("Shape of Perturbed Data:", self.perturbed_data.shape)
+    This function loads unperturbed and perturbed data, then plots the initial states
+    and their differences.
+    """
+    grids_unperturbed = np.load("data/unperturbed_data.npy")
+    grids_perturbed = np.load("data/perturbed_data.npy")
 
-        self.mean_ground_diff = None
-        self.mean_water_diff = None
-        self.hamming_water = None
-        self.hamming_ground = None
-        self.lyapunov_exponent_water = None
-        self.lyapunov_exponent_ground = None
+    # Extract the initial ground height for unperturbed data
+    unperturbed_ground_height = grids_unperturbed[0, :, :, 0]  # Assuming GROUND_HEIGHT index is 0
 
-    def compute_mean_differences(self):
-        self.mean_ground_diff = np.mean(
-            np.abs(self.perturbed_data[..., GROUND_HEIGHT] - self.unperturbed_data[..., GROUND_HEIGHT]), 
-            axis=(1, 2)
-        )
-        self.mean_water_diff = np.mean(
-            np.abs(self.perturbed_data[..., WATER_HEIGHT] - self.unperturbed_data[..., WATER_HEIGHT]), 
-            axis=(1, 2)
-        )
+    # Extract the initial ground height for the first simulation of the perturbed data
+    perturbed_ground_height = grids_perturbed[0, 0, :, :, 0]  # 0 for the first simulation
 
-    def normalize_differences(self):
-        max_diff_water = np.max(self.mean_water_diff)
-        max_diff_ground = np.max(self.mean_ground_diff)
+    # Create a figure for the plots
+    plt.figure(figsize=(18, 6))  # Increased width for three plots
 
-        normalized_water_diff = self.mean_water_diff / max_diff_water
-        normalized_ground_diff = self.mean_ground_diff / max_diff_ground
+    # Plot unperturbed ground height
+    ax1 = plt.subplot(1, 3, 1)
+    plt.imshow(unperturbed_ground_height, cmap='copper')
+    plt.colorbar()
+    plt.title("Initial State - Unperturbed")
+    ax1.set_xticks([])  # Remove x-axis ticks
+    ax1.set_yticks([])  # Remove y-axis ticks
 
-        return normalized_water_diff, normalized_ground_diff
+    # Plot perturbed ground height
+    ax2 = plt.subplot(1, 3, 2)
+    plt.imshow(perturbed_ground_height, cmap='copper')
+    plt.colorbar()
+    plt.title("Initial State - Perturbed")
+    ax2.set_xticks([])  # Remove x-axis ticks
+    ax2.set_yticks([])  # Remove y-axis ticks
 
-    def compute_log_differences(self, normalized_water_diff, normalized_ground_diff):
-        log_mean_water_diff = np.log(normalized_water_diff + 1e-10)
-        log_mean_ground_diff = np.log(normalized_ground_diff + 1e-10)
+    # Plot the difference between perturbed and unperturbed ground heights
+    ax3 = plt.subplot(1, 3, 3)
+    difference = perturbed_ground_height - unperturbed_ground_height
+    plt.imshow(difference, cmap='terrain')
+    plt.colorbar()
+    plt.title("Initial State - Difference")
+    ax3.set_xticks([])  # Remove x-axis ticks
+    ax3.set_yticks([])  # Remove y-axis ticks
 
-        return log_mean_water_diff, log_mean_ground_diff
-
-    def fit_linear_model(self, log_mean_water_diff, log_mean_ground_diff):
-        time_steps_full = np.arange(len(self.mean_water_diff))
-
-        slope_water, _ = np.polyfit(time_steps_full, log_mean_water_diff, 1)
-        slope_ground, _ = np.polyfit(time_steps_full, log_mean_ground_diff, 1)
-
-        self.lyapunov_exponent_water = slope_water
-        self.lyapunov_exponent_ground = slope_ground
-
-    def toggle_binary(self):
-        self.unperturbed_data = np.where(self.unperturbed_data > 0, 1, 0)
-        self.perturbed_data = np.where(self.perturbed_data > 0, 1, 0)
-
-    def toggle_continuous(self):
-        self.unperturbed_data = self.copy_unperturbed_data
-        self.perturbed_data = self.copy_perturbed_data
-
-    def compute_hamming_distance(self):
-        self.toggle_binary()
-        time_steps = self.unperturbed_data.shape[0]
-        self.hamming_water = []
-        self.hamming_ground = []
-
-        for t in range(time_steps):
-            water_hamming = np.sum(
-                self.unperturbed_data[t, ..., WATER_HEIGHT] != self.perturbed_data[t, ..., WATER_HEIGHT]
-            )
-            ground_hamming = np.sum(
-                self.unperturbed_data[t, ..., GROUND_HEIGHT] != self.perturbed_data[t, ..., GROUND_HEIGHT]
-            )
-
-            self.hamming_water.append(water_hamming)
-            self.hamming_ground.append(ground_hamming)
-
-        self.hamming_water = np.array(self.hamming_water)
-        self.hamming_ground = np.array(self.hamming_ground)
-
-    def plot_mean_differences(self):
-        time_steps_full = np.arange(len(self.mean_water_diff))
-
-        fig, axs = plt.subplots(2, 1, figsize=(8, 8))
-
-        # Subplot for Water Height Difference
-        axs[0].plot(time_steps_full, self.mean_water_diff, "b-", label="Water Height Difference")
-        axs[0].set_title("Water Height Difference Over Time")
-        axs[0].set_xlabel("Epoch")
-        axs[0].set_ylabel("Mean Absolute Difference")
-        #axs[0].set_yscale("log")
-        axs[0].legend()
-        axs[0].grid(True)
-
-        # Subplot for Terrain Height Difference
-        axs[1].plot(time_steps_full, self.mean_ground_diff, "g-", label="Ground Height Difference")
-        axs[1].set_title("Ground Height Difference Over Time")
-        axs[1].set_xlabel("Epoch")
-        axs[1].set_ylabel("Mean Absolute Difference")
-        #axs[1].set_yscale("log")
-        axs[1].legend()
-        axs[1].grid(True)
-
-        plt.tight_layout()
-        plt.show()
-
-    def plot_hamming_distance(self):
-        time_steps = np.arange(len(self.hamming_water))
-
-        plt.figure(figsize=(8, 8))
-        plt.plot(time_steps, self.hamming_water, "b-", label="Hamming Distance (Water)")
-        plt.title("Hamming Distance (Water) Over Time")
-        plt.xlabel("Epoch")
-        plt.ylabel("Hamming Distance")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
-
-    def run_analysis(self):
-        self.compute_mean_differences()
-        normalized_water_diff, normalized_ground_diff = self.normalize_differences()
-        log_mean_water_diff, log_mean_ground_diff = self.compute_log_differences(normalized_water_diff, normalized_ground_diff)
-        self.fit_linear_model(log_mean_water_diff, log_mean_ground_diff)
-
-        # Compute Hamming distances
-        self.compute_hamming_distance()
-
-        # Print results
-        print("Mean Ground Height Difference:", self.mean_ground_diff)
-        print("Mean Water Height Difference:", self.mean_water_diff)
-        print(f"Lyapunov Exponent for Water Height: {self.lyapunov_exponent_water}")
-        print(f"Lyapunov Exponent for Ground Height: {self.lyapunov_exponent_ground}")
-        print(f"Hamming Distance - Water Height: {self.hamming_water[-1]}, Ground Height: {self.hamming_ground[-1]}")
-
-        # Plot results
-        self.plot_mean_differences()
-        self.plot_hamming_distance()
+    plt.tight_layout()
+    plt.savefig("data/2initial_states.png")
+    plt.show()
 
 
-# Constants for indexing
-GROUND_HEIGHT = 0
-WATER_HEIGHT = 1
+def plot_divergence(perturbed_file, unperturbed_file):
+    """
+    Load perturbed and unperturbed data, compute the mean absolute divergence,
+    and plot the results for ground and water height divergences.
 
-# Example usage
-if __name__ == "__main__":
-    analysis = ExpAnalysis("data/unperturbed_data.npy", "data/perturbed_data.npy")
-    analysis.run_analysis()
+    Parameters:
+        perturbed_file (str): Path to the perturbed data file.
+        unperturbed_file (str): Path to the unperturbed data file.
+    """
+    # Load perturbed and unperturbed data
+    perturbed_data = np.load(perturbed_file)  
+    unperturbed_data = np.load(unperturbed_file)  
+
+    print(unperturbed_data.shape)
+    print(perturbed_data.shape)
+
+    # Compute absolute differences
+    diffs = np.abs(perturbed_data - unperturbed_data)  # Shape: (10, 1000, 101, 21, 2)
+
+    # Average over spatial dimensions (width=101, height=21)
+    spatial_avg_diffs = np.mean(diffs, axis=(2, 3))  # Shape: (10, 1000, 2)
+
+    # Average over all perturbed simulations
+    mean_divergence = np.mean(spatial_avg_diffs, axis=0)  # Shape: (1000, 2)
+
+    # Extract ground and water divergence
+    ground_divergence = mean_divergence[:, 0]  # Shape: (1000,)
+    water_divergence = mean_divergence[:, 1]   # Shape: (1000,)
+
+    # Time axis
+    timesteps = np.arange(len(ground_divergence))
+
+    plt.figure(figsize=(8, 4))
+
+    # Plot ground divergence
+    plt.plot(timesteps, ground_divergence, label="Ground Height", color="blue")
+    plt.xlabel("Time Step")
+    plt.ylabel("Mean Absolute Difference")
+    plt.title("Ground Height Difference Over Time")
+    plt.legend()
+    #plt.yscale("log")
+    plt.grid()
+    #plt.savefig("data/ground_divergence.png")
+    plt.show()
+
+    plt.figure(figsize=(8, 4))
+    # Plot water divergence
+    plt.plot(timesteps, water_divergence, label="Water Height", color="green")
+    plt.xlabel("Time Step")
+    plt.ylabel("Mean Absolute Divergence")
+    plt.title("Water Height Difference Over Time")
+    #plt.yscale("log")
+    plt.legend()
+    plt.grid()
+
+    plt.tight_layout()
+    #plt.savefig("data/water_divergence.png")
+    plt.show()
+
+def plot_hamming(perturbed_file, unperturbed_file):
+    """
+    Load perturbed and unperturbed data, compute the Hamming distance,
+    and plot the results for average changes over time.
+
+    Parameters:
+        perturbed_file (str): Path to the perturbed data file.
+        unperturbed_file (str): Path to the unperturbed data file.
+    """
+    # Load perturbed and unperturbed data
+    perturbed_data = np.load(perturbed_file)  # Shape: (num_simulations, num_timesteps, height, width, NUM_CELL_FLOATS)
+    unperturbed_data = np.load(unperturbed_file)  # Shape: (num_timesteps, height, width, NUM_CELL_FLOATS)
+
+    print(unperturbed_data.shape)  # e.g., (1000, 101, 21, 2)
+    print(perturbed_data.shape)     # e.g., (10, 1000, 101, 21, 2)
+
+    # Ensure unperturbed data is expanded to match the shape of perturbed data
+    unperturbed_expanded = np.expand_dims(unperturbed_data, axis=0)  # Shape: (1, 1000, 101, 21, 2)
+    unperturbed_repeated = np.repeat(unperturbed_expanded, perturbed_data.shape[0], axis=0)  # Shape: (num_simulations, 1000, 101, 21, 2)
+
+    # Compute Hamming distance
+    hamming = np.sum(perturbed_data != unperturbed_repeated, axis=-1)  # Shape: (num_simulations, 1000, 101, 21)
+
+    # Average over spatial dimensions (width=21, height=101)
+    spatial_avg_hamming = np.mean(hamming, axis=(2, 3))  # Shape: (num_simulations, 1000)
+
+    # Average over all perturbed simulations to get the grand average
+    mean_hamming = np.mean(spatial_avg_hamming, axis=0)  # Shape: (1000,)
+
+    # Plotting the grand average Hamming distance
+    timesteps = np.arange(len(mean_hamming))
+
+    # Plot
+    plt.figure(figsize=(8, 6))
+    plt.plot(timesteps, mean_hamming, label="Average Hamming Distance", color="purple")
+    plt.xlabel("Time Step")
+    plt.ylabel("Average Hamming Distance")
+    plt.title("Average Hamming Distance Over Time (Water)")
+    plt.legend()
+    plt.grid()
+    plt.yscale("log")
+    plt.tight_layout()
+    #plt.savefig("data/hamming.png")
+    plt.show()
+
+# Example of calling the function
+plot_divergence("data/perturbed_data.npy", "data/unperturbed_data.npy")
+#plot_hamming("data/perturbed_data.npy", "data/unperturbed_data.npy")
+#plot_initial_states()
