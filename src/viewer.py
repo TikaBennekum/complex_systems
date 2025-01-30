@@ -1,9 +1,9 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        This file contains a 3D viewer class for our system.
+File description:
+    This file contains a 3D viewer class for our system.
 """
 
 import vtk
@@ -59,6 +59,12 @@ class BarChartVisualizer:
         self.renderer.GetActiveCamera().Zoom(camera_settings[3])
 
     def create_slider(self) -> vtk.vtkSliderWidget:
+        """
+        Create a slider widget for selecting the grid index.
+
+        ## Returns
+         - A configured `vtkSliderWidget`.
+        """
         slider_rep = vtk.vtkSliderRepresentation2D()
         slider_rep.SetMinimumValue(0)
         slider_rep.SetMaximumValue(len(self.grids) - 1)
@@ -77,13 +83,13 @@ class BarChartVisualizer:
         slider_widget = vtk.vtkSliderWidget()
         slider_widget.SetInteractor(self.interactor)
         slider_widget.SetRepresentation(slider_rep)
-        slider_widget.AddObserver("InteractionEvent", self.slider_callback)
+        slider_widget.AddObserver("InteractionEvent", self.slider_callback)  # type: ignore
 
         return slider_widget
 
     def slider_callback(self, obj: vtk.vtkSliderWidget, event: str) -> None:
         slider_rep = obj.GetRepresentation()
-        value = slider_rep.GetValue()
+        value = slider_rep.GetValue() # type: ignore
         snapped_value = int(round(value))
         slider_rep.SetValue(snapped_value)
         if snapped_value != self.current_grid_index:
@@ -128,6 +134,16 @@ class BarChartVisualizer:
     def add_cube(
         self, i: int, j: int, base_height: float, height: float, layer: int
     ) -> None:
+        """
+        Add a single cube to the polydata.
+
+        ## Inputs
+         - `i`: Row index in the grid.
+         - `j`: Column index in the grid.
+         - `base_height`: Height at the bottom of this cube.
+         - `height`: Height of the cube.
+         - `layer`: Layer index (used for color selection).
+        """
         x_min, x_max = i - 0.4, i + 0.4
         y_min, y_max = j - 0.4, j + 0.4
         z_min, z_max = base_height, base_height + height
@@ -137,11 +153,11 @@ class BarChartVisualizer:
             (x_min, y_min, z_min),
             (x_max, y_min, z_min),
             (x_max, y_max, z_min),
-            (x_min, y_max, z_min),
+            (x_min, y_max, z_min),  # Bottom
             (x_min, y_min, z_max),
             (x_max, y_min, z_max),
             (x_max, y_max, z_max),
-            (x_min, y_max, z_max),
+            (x_min, y_max, z_max),  # Top
         ]
         for vertex in vertices:
             self.points.InsertNextPoint(vertex)
@@ -150,9 +166,9 @@ class BarChartVisualizer:
             (0, 1, 5, 4),
             (1, 2, 6, 5),
             (2, 3, 7, 6),
-            (3, 0, 4, 7),
-            (0, 1, 2, 3),
-            (4, 5, 6, 7),
+            (3, 0, 4, 7),  # Side faces
+            (0, 1, 2, 3),  # Bottom face
+            (4, 5, 6, 7),  # Top face
         ]
         for face in faces:
             quad = vtk.vtkQuad()

@@ -1,10 +1,10 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        Shows a system which temporarily forms a single stream, and then 
-        becomes chaotic again.
+File description:
+    Shows a system which temporarily forms a single stream, and then
+    becomes chaotic again.
 """
 
 import numpy as np
@@ -35,6 +35,7 @@ default_params = {
 def view_configuration(
     width, height, ground_height, num_steps, noise_amplitude, seed=42
 ):
+    """Function to view configuration."""
     np.random.seed(seed)
 
     # Generate the initial grid state
@@ -150,6 +151,7 @@ def run_fastCA(
 
 
 def get_stream_number(grid, threshold):
+    """Returns the mean stream number."""
     streams_in_row = []
     for row in grid:
         stream_count = 0

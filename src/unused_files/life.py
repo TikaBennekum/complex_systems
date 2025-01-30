@@ -6,7 +6,9 @@ class CellularAutomaton:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.grid = np.random.choice([0, 1], size=(width, height))  # Randomly initialize grid with 0s and 1s
+        self.grid = np.random.choice(
+            [0, 1], size=(width, height)
+        )  # Randomly initialize grid with 0s and 1s
 
     def count_alive_neighbors(self, i, j):
         """
@@ -15,7 +17,16 @@ class CellularAutomaton:
         rows, cols = self.grid.shape
         alive_neighbors = 0
 
-        for di, dj in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+        for di, dj in [
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ]:
             ni, nj = i + di, j + dj
             if 0 <= ni < rows and 0 <= nj < cols:
                 alive_neighbors += self.grid[ni, nj]
@@ -57,14 +68,14 @@ class CellularAutomaton:
         Run the simulation for a given number of epochs.
         """
         fig, ax = plt.subplots()
-        img = ax.imshow(self.grid, interpolation='nearest', cmap='binary')
-        plt.title('Conway\'s Game of Life')
+        img = ax.imshow(self.grid, interpolation="nearest", cmap="binary")
+        plt.title("Conway's Game of Life")
 
         for generation in range(num_epochs):
             self.update_grid()  # Update the grid
             img.set_data(self.grid)  # Update visualization
             plt.pause(0.5)
-            ax.set_title(f'Generation: {generation}')
+            ax.set_title(f"Generation: {generation}")
             fig.canvas.draw()
 
         plt.show()
