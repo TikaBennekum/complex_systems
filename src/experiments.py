@@ -6,6 +6,7 @@
         This file contains experiments, where the effect of parameter values on the erosion is researched.
 """
 
+from cpp_modules import fastCA
 from CA import *
 from initial_state_generation import generate_initial_slope
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ def simulation(seed, erosion_rate, flow_rate, slope=101*0.1):
     width, height = 21, 101
     initial_state = generate_initial_slope(height, width, slope, noise_amplitude = 0.1, noise_type = 'white')
     ca = CA(width, height, initial_state, neighbor_list=BOTTOM_NEIGHBORS)
-    nr_of_iterations = 1000
+    nr_of_iterations = 100
     grids = ca.run_experiment(nr_of_iterations, erosion_rate, flow_rate)
 
     erosion_per_iteration = []
@@ -59,11 +60,14 @@ def exp_erosion_rate():
     plt.legend()
     plt.savefig('../data/exp_erosion_rate.png')
 
+
     plt.figure(figsize=(10, 6))
     plt.scatter(k, total_erosion, marker='o')
-    plt.xlabel('Erosion rate')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear erosion rate increase -> linear total erosion increase')
+    plt.xlabel('Erosion rate', fontsize=16)
+    plt.ylabel('Total Erosion', fontsize=16)
+    plt.title('Total erosion for linearly increasing erosion rates', fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.grid(True, linestyle='--')
     plt.savefig('../data/exp_erosion_rate2.png')
 
@@ -93,9 +97,11 @@ def exp_flow_rate():
 
     plt.figure(figsize=(10, 6))
     plt.scatter(flow_rate, total_erosion, marker='o')
-    plt.xlabel('Flow rate')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear flow rate increase -> linear total erosion increase')
+    plt.xlabel('Flow rate', fontsize=16)
+    plt.ylabel('Total Erosion', fontsize=16)
+    plt.title('Total erosion for linearly increasing flow rates', fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.grid(True, linestyle='--')
     plt.savefig('../data/exp_flow_rate2.png')
 
@@ -128,9 +134,11 @@ def exp_slope():
 
     plt.figure(figsize=(10, 6))
     plt.scatter(slope, total_erosion, marker='o')
-    plt.xlabel('slope')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear slope increase -> linear total erosion decrease')
+    plt.xlabel('Slope', fontsize=16)
+    plt.ylabel('Total Erosion', fontsize=16)
+    plt.title('Total erosion for linearly increasing slopes', fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.grid(True, linestyle='--')
     plt.savefig('../data/exp_slope2.png')
 
@@ -141,7 +149,7 @@ def exp_incr_flow_decr_eros():
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    flow_rate = np.arange(2, 9, 1)
+    flow_rate = np.arange(10, 18, 1)
     k = 1 / flow_rate
     k = k
     print(flow_rate)
@@ -159,9 +167,11 @@ def exp_incr_flow_decr_eros():
     plt.figure(figsize=(10, 6))
     plt.scatter(range(len(flow_rate)), total_erosion, marker='o')  # Use indices for x-values
     plt.xticks(ticks=range(len(flow_rate)), labels=labels, rotation=45, ha='right')  # Add combined labels
-    plt.xlabel('k and Flow rate')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear flow increase, linear erosion rate decrease-> ?')
+    plt.xlabel('Slope', fontsize=16)
+    plt.ylabel('Total Erosion', fontsize=16)
+    plt.title('Total erosion for linearly increasing slopes', fontsize=18)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.grid(True, linestyle='--')
     plt.tight_layout()  # Adjust layout to fit rotated labels
     plt.savefig('../data/exp_incr_flow_decr_eros.png')
@@ -203,11 +213,12 @@ if __name__ == "__main__":
     """
     Calls the different experiments.
     """
-    exp_erosion_rate()
-    exp_flow_rate()
-    exp_slope()
+
+    # exp_erosion_rate()
+    # exp_flow_rate()
+    # exp_slope()
     exp_incr_flow_decr_eros()
-    exp_incr_slope_incr_eros()
+    # exp_incr_slope_incr_eros()
 
 
 
