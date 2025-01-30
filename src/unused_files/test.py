@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
+
 class CA:
     def __init__(self, width, height, water, ground_height):
         self.width = width
         self.height = height
-        self.water = water # 1: water, 0: not water
+        self.water = water  # 1: water, 0: not water
         self.ground_height = ground_height
         self.grid = np.zeros((width, height))
         self.total = self.grid[:, :, 0] + self.grid[:, :, 1]  # Combined height
@@ -15,12 +16,15 @@ class CA:
         # Create a sloped terrain where ground_heightiment height decreases from top to bottom
         for i in range(self.width):
             for j in range(self.height):
-                self.grid[i, j, 1] = self.ground_height - (i * 0.1)  # Gradual slope downward
-
+                self.grid[i, j, 1] = self.ground_height - (
+                    i * 0.1
+                )  # Gradual slope downward
 
         # Define a large water source blob at the top-center of the grid
         water_blob_width = self.width // 5  # Water blob spans 1/5 of the grid width
-        water_blob_height = self.height // 10  # Water blob height is 1/10th of the grid height
+        water_blob_height = (
+            self.height // 10
+        )  # Water blob height is 1/10th of the grid height
         start_row = 0
         start_col = (self.width - water_blob_width) // 2  # Center the blob horizontally
 
@@ -73,11 +77,11 @@ class CA:
 
         else:
             # Distribute to all neighbors using negative slopes
-            total_negative_slope = sum(abs(s)**-n for s in slopes if s < 0)
+            total_negative_slope = sum(abs(s) ** -n for s in slopes if s < 0)
             if total_negative_slope > 0:
                 for k, slope in enumerate(slopes):
                     if slope < 0:
-                        proportion = (abs(slope)**-n) / total_negative_slope
+                        proportion = (abs(slope) ** -n) / total_negative_slope
                         discharge = current_water * proportion
                         ni, nj = indices[k]
                         self.grid[ni, nj, 0] += discharge
@@ -103,13 +107,17 @@ class CA:
             self.update_grid()
 
             # Create a frame for the video (water dynamics layer)
-            frame = (self.grid[:, :, 0] / np.max(self.grid[:, :, 0]) * 255).astype(np.uint8)
+            frame = (self.grid[:, :, 0] / np.max(self.grid[:, :, 0]) * 255).astype(
+                np.uint8
+            )
             frame_color = cv2.applyColorMap(frame, cv2.COLORMAP_JET)  # Add colormap
             frames.append(frame_color)
 
         # Save all frames as a video
         height, width, _ = frames[0].shape
-        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
+        out = cv2.VideoWriter(
+            output_file, cv2.VideoWriter_fourcc(*"mp4v"), 10, (width, height)
+        )
         for frame in frames:
             out.write(frame)
         out.release()
@@ -117,7 +125,12 @@ class CA:
 
 
 # Example usage
-width, height, water, ground_height = 100, 100, 10, 50  # Larger water source and sloped terrain
-output_file = 'videos/water_simulation.mp4'  # Output video file
+width, height, water, ground_height = (
+    100,
+    100,
+    10,
+    50,
+)  # Larger water source and sloped terrain
+output_file = "videos/water_simulation.mp4"  # Output video file
 ca = CA(width, height, water, ground_height)
 ca.run_simulation(50, output_file)
