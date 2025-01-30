@@ -253,7 +253,7 @@ if __name__ == "__main__":
 
     # Visualize the data
     visualizer = BarChartVisualizer(
-        grids[::100], camera_settings=(10, -35, -10, 2.0), window_size=(1920, 800)
+        grids[::400], camera_settings=(10, -35, -10, 2.0), window_size=(1920, 800)
     )
     visualizer.save_video("videos/seed_42_flipping.avi")
     # visualizer.run()
