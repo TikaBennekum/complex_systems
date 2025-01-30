@@ -24,14 +24,17 @@ default_params = {
 
 
 def mse(A, B):
+    """The mean square error algorithm."""
     return np.mean((A - B) ** 2)
 
 
 def mean_abs(A, B):
+    """returns the mean of two lists of absolute differences."""
     return np.mean(np.abs(A - B))
 
 
 def max_abs(A, B):
+    """returns the max of two lists of absolute differences."""
     return np.max(np.abs(A - B))
 
 
@@ -95,6 +98,7 @@ def small_grid_change_experiment(
     params=default_params,
     metric=mse,
 ):
+    """Experiment that tests teh effect of a small change to the grid."""
     np.random.seed(42)
     ground_height = height * slope
     initial_state = generate_initial_slope(
@@ -111,6 +115,7 @@ def small_grid_change_experiment(
 
 
 def grid_change_histogram(diffs):
+    """A histogram of the grid change."""
     # plt.hist(diffs)
     hist, bins = np.histogram(diffs, bins=np.logspace(-2, 1, 50, base=10))
     # hist, bins = np.histogram(diffs)

@@ -32,6 +32,7 @@ default_params = {
 def view_configuration(
     width, height, ground_height, num_steps, noise_amplitude, seed=42
 ):
+    """Function to view configuration."""
     np.random.seed(seed)
 
     # Generate the initial grid state
@@ -54,6 +55,7 @@ def view_configuration(
 def run_fastCA(
     initial_state, steps, steps_per_gen, params=default_params, update_progress=False
 ):
+    """Function to run the Cellular Automata fast."""
 
     height, width, cell_dim = initial_state.shape
     num_gens = steps // steps_per_gen
@@ -74,6 +76,7 @@ def run_fastCA(
 
 
 def get_stream_number(grid, threshold):
+    """Returns the mean stream number."""
     streams_in_row = []
     for row in grid:
         stream_count = 0
@@ -93,6 +96,7 @@ def get_stream_number(grid, threshold):
 def stream_number_progression(
     width, height, ground_height, num_steps, noise_amplitude, seed
 ):
+    """Shows the stream number progression,=."""
     np.random.seed(seed)
 
     # Generate the initial grid state

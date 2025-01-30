@@ -12,7 +12,7 @@ from constants import *
 
 
 def compute_frame(grid):
-    # Create a frame for the video showing water presence and height
+    """Create a frame for the video showing water presence and height."""
     height = grid.shape[0]
     width = grid.shape[1]
     frame = np.zeros((height, 2 * width, 3), dtype=np.uint8)
@@ -34,6 +34,7 @@ def compute_frame(grid):
 
 
 def save_video(saved_grids, output_file):
+    """Function to save video."""
     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*"mp4v"), 60, (saved_grids.shape[2], 2 * saved_grids.shape[1]))  # type: ignore
     for grid in saved_grids:
         frame = compute_frame(grid)
@@ -43,6 +44,7 @@ def save_video(saved_grids, output_file):
 
 
 def stream_video(saved_grids, scale=10, fps=100):
+    """The video is streamed from this function."""
 
     for grid in saved_grids:
         frame = compute_frame(grid)

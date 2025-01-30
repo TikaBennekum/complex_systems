@@ -33,6 +33,7 @@ class SliderCallback:
 
 
 def add_cube():
+    """Function to add cubes."""
 
     # Create a vtkAppendPolyData to merge individual bar actors
     append_filter = vtk.vtkAppendPolyData()
@@ -58,6 +59,7 @@ def add_cube():
 
 
 def update_cube_height(value, bottom, cube):
+    """Updates the cube."""
     cube.SetZLength(value)  # Height of the bar
 
     # Set the position of the bar

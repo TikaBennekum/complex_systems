@@ -117,6 +117,7 @@ def count_num_streams(grid, threshold=1e-9, skip_rows=1):
 def num_streams_histogram(
     height, width, mean_slope, num_steps, flow, plot_results=False
 ):
+    """A histogram of the number of streams."""
 
     grid = run_single_experiment(height, width, mean_slope, num_steps, flow)
 
@@ -397,6 +398,7 @@ def run_and_stream():
     initial_state = generate_initial_slope(
         height, width, ground_height, noise_amplitude=0.2, noise_type="white"
     )
+    """ Runs system and streams results."""
 
     add_central_flow(initial_state, 1)
 
