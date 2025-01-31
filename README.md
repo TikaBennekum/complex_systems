@@ -18,6 +18,11 @@ Python files are in the src directory
 To run the "Lane's relation" experiments:
     experiments.py
 
+To run the divergence/perturbation experiment:
+    divergence_exp.py
+    divergence_analysis.py
+
+
 To run the number of streams / entropy experiments:
     experiments_num_streams.py
 
