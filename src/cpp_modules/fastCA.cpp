@@ -16,6 +16,9 @@
 
 namespace py = pybind11;
 
+/* 
+compute sum of an nparray for testing if the bindings work 
+*/
 double sum(py::array_t<double> &a)
 {
 
@@ -34,6 +37,9 @@ double sum(py::array_t<double> &a)
     return suma;
 }
 
+/*
+convert a python dict to a cpp map<string, double>
+*/
 std::map<std::string, double> convert_dict(py::dict dict)
 {
     std::map<std::string, double> converted_map;
@@ -46,6 +52,14 @@ std::map<std::string, double> convert_dict(py::dict dict)
     return converted_map;
 }
 
+/*
+Simulate the Cellular Automata model 
+
+Params:
+    grids: [num_steps x height x width x 2] ndarray
+    params: pyton dict with parameters (must contain EROSION_(K|))
+
+*/
 void simulate(py::array_t<double> &grids, py::dict params)
 {
 
