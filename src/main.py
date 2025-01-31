@@ -29,10 +29,6 @@ if __name__ == "__main__":
     grids = np.zeros([num_steps, height, width, NUM_CELL_FLOATS])
     grids[0] = initial_state
 
-    # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
-    # plt.colorbar()
-
     plt.savefig("../data/cpptest0.png")
 
     params = {
@@ -44,14 +40,8 @@ if __name__ == "__main__":
 
     fastCA.simulate(grids, params)
 
-    # print(grids)
-    # save_video(grids, 'videos/cpp_test.mp4')
-    # print(grids)
-
-    # # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
     plt.imshow(grids[-1, :, :, GROUND_HEIGHT] - initial_state[:, :, GROUND_HEIGHT])
     plt.colorbar()
     plt.show()
-    # plt.savefig('data/cpptest.png')
-
+    
     stream_video(grids)

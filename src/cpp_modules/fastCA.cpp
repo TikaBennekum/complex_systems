@@ -13,7 +13,6 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-// #include <omp.h>
 
 namespace py = pybind11;
 
@@ -24,8 +23,6 @@ double sum(py::array_t<double> &a)
 
     double suma{0.0};
 
-    // #pragma omp parallel
-    // #pragma omp for reduction(+:suma)
     for (py::ssize_t i = 0; i < a_arr.shape(0); ++i)
     {
         for (py::ssize_t j = 0; j < a_arr.shape(1); ++j)
@@ -44,7 +41,6 @@ std::map<std::string, double> convert_dict(py::dict dict)
     {
         std::string first = std::string(py::str(elem.first));
         double second = elem.second.cast<double>();
-        // std::cout << first << ": " << second << std::endl;
         converted_map.insert(std::pair<std::string, double>(first, second));
     }
     return converted_map;
@@ -158,7 +154,6 @@ void simulate(py::array_t<double> &grids, py::dict params)
                 add_to_list(slope, row + 1, col + 1);
             }
         }
-        // std::cout << pos_slopes.size() << " " <<zero_slopes.size() << " " <<neg_slopes.size() << " " << std::endl;
 
         if (pos_slopes.size() > 0)
         {
@@ -219,7 +214,6 @@ void simulate(py::array_t<double> &grids, py::dict params)
         auto prev_step = step - 1;
         copy_state(step, prev_step);
 
-        // std::cout << step << std::endl;
         for (ssize_t row = 0; row < height - 1; row++)
         {
             for (ssize_t col = 0; col < width; col++)

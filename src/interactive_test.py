@@ -28,7 +28,6 @@ class SliderCallback:
     def __call__(self, caller, ev):
         slider_widget = caller
         value = int(slider_widget.representation.value)
-        # print(self.the_cube)
         self.cube.SetZLength(value)
 
 
@@ -94,9 +93,6 @@ def main():
     callback = SliderCallback(cube)
 
     bar_chart_actor.GetProperty().SetColor(vtkNamedColors().GetColor3d("red"))
-    # callback.add_actor(bar_chart_actor, step_nr)
-    # if not step_nr == 9:
-    #     bar_chart_actor.VisibilityOff()
     renderer.AddActor(bar_chart_actor)
 
     widget.AddObserver(vtkCommand.InteractionEvent, callback)

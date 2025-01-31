@@ -73,9 +73,7 @@ def change_every_n_steps(
             print(gen % 10, end="", flush=True)
         gen_grids[0] = last_state
         fastCA.simulate(gen_grids, params)
-        # print('----------------------')
-        # print(gen_grids[-1])
-        # print(last_state)
+        
         if gen >= skip_initial_gens:
             diffs[gen] = metric(
                 last_state[:, :, WATER_HEIGHT], gen_grids[-1, :, :, WATER_HEIGHT]
@@ -109,19 +107,16 @@ def small_grid_change_experiment(
     diffs = change_every_n_steps(initial_state, 1000000, 100, metric=metric)
 
     print(diffs)
-    # plt.hist(diffs, 30)
     np.save(output_file, diffs)
     return diffs
 
 
 def grid_change_histogram(diffs):
     """A histogram of the grid change."""
-    # plt.hist(diffs)
     hist, bins = np.histogram(diffs, bins=np.logspace(-2, 1, 50, base=10))
-    # hist, bins = np.histogram(diffs)
+
     hist = hist / len(diffs)
     plt.plot(1 / 2 * (bins[:-1] + bins[1:]), hist, linestyle="", marker="o")
-    # plt.yscale('log')
     plt.xscale("log")
     plt.xlabel("size of change")
     plt.ylabel("frequency")
@@ -130,8 +125,5 @@ def grid_change_histogram(diffs):
 
 
 if __name__ == "__main__":
-    # Example usage
-    # print(mse(np.array([1,2]),np.array([3,4])))
     file = "data/height_change_hist_w1.npy"
-    # diffs = small_grid_change_experiment(file,steps_per_gen=1000, width=21, height=100, metric=max_abs)
     grid_change_histogram(np.load(file))
