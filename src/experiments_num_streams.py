@@ -480,10 +480,6 @@ def analyze_num_streams_experiment_erosion_entropy(data_file, output_file=None, 
     print(mean_entropies)
         
     mean_num_streams_graph_erosion_entropy(mean_entropies, output_file, slopes, erosions)
-    # plt.imshow(num_streams[:,2])
-    # plt.colorbar()
-    # plt.show()
-        
         
         
 def mean_num_streams_graph_erosion_entropy(data, output_file = None, slopes=np.linspace(0.01,1,10), erosions=[0.025,0.05,0.1,0.2,0.4]):
