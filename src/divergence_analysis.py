@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        Analysis of the divergence between perturbed and unperturbed data.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors

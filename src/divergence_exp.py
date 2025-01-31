@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        Runs simulations with perturbed and unperturbed initial states.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from cpp_modules import fastCA
