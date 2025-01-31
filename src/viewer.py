@@ -8,16 +8,25 @@ File description:
 
 import vtk
 from vtk import vtkNamedColors
+from vtkmodules.util.numpy_support import vtk_to_numpy
 import numpy as np
+import cv2
 from typing import List
 from CA import EROSION_C, EROSION_EXPONENT, EROSION_K, N
 from cpp_modules import fastCA
 from initial_state_generation import add_central_flow, generate_initial_slope
 from constants import *
+from tqdm import tqdm
 
 
 class BarChartVisualizer:
-    def __init__(self, grids: np.ndarray, colors: List[str] = ["peru", "deepskyblue"]):
+    def __init__(
+        self,
+        grids: np.ndarray,
+        colors: List[str] = ["sienna", "aqua"],
+        camera_settings: tuple = (0, 0, 0, 1.0),
+        window_size: tuple[int, int] = (800, 800),
+    ):
         """
         Initialize the 3D bar chart visualizer.
 
@@ -26,30 +35,34 @@ class BarChartVisualizer:
          - `colors`: A list of color names (strings) corresponding to each layer of the grid.
         """
         self.grids = grids
-        self.colors = colors
-        self.current_grid_index = 0  # Index of the grid to visualize
+        self.ground_color = np.array(vtkNamedColors().GetColor3ub(colors[0]))
+        self.water_color = np.array(vtkNamedColors().GetColor3ub(colors[1]))
+        self.current_grid_index = 0
+        self.window_size = window_size
 
-        # VTK renderer, window, and interactor
         self.renderer = vtk.vtkRenderer()
         self.render_window = vtk.vtkRenderWindow()
+        self.render_window.SetSize(*self.window_size)
         self.render_window.AddRenderer(self.renderer)
 
         self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.render_window)
 
-        # Slider widget for navigating through grids
         self.slider_widget = self.create_slider()
 
-        # VTK data structures for rendering
         self.poly_data = vtk.vtkPolyData()
         self.points = vtk.vtkPoints()
         self.cells = vtk.vtkCellArray()
         self.colors_array = vtk.vtkUnsignedCharArray()
-        self.colors_array.SetNumberOfComponents(3)  # RGB colors
+        self.colors_array.SetNumberOfComponents(3)
 
-        # Initialize and render the chart
         self.initialize_chart()
         self.update_chart()
+
+        self.renderer.GetActiveCamera().Elevation(camera_settings[1])
+        self.renderer.GetActiveCamera().Azimuth(camera_settings[0])
+        self.renderer.GetActiveCamera().Roll(camera_settings[2])
+        self.renderer.GetActiveCamera().Zoom(camera_settings[3])
 
     def create_slider(self) -> vtk.vtkSliderWidget:
         """
@@ -186,10 +199,55 @@ class BarChartVisualizer:
                 quad.GetPointIds().SetId(k, start_id + face[k])
             self.cells.InsertNextCell(quad)
 
-        # Assign color based on the layer
-        color = vtkNamedColors().GetColor3ub(self.colors[layer])
+        if layer == 1:  # Water layer
+            blend_factor = min((height / 2.0) ** (1 / 4) * 0.9 + 0.1, 1.0)
+            color = (
+                1 - blend_factor
+            ) * self.ground_color + blend_factor * self.water_color
+            color = tuple(color.astype(np.uint8))
+        else:
+            color = tuple(self.ground_color)
+
         for _ in faces:
             self.colors_array.InsertNextTypedTuple(color)
+    
+    def save_video(self, filename: str, fps: int = 30) -> None:
+        """
+        Record a video of the supplied grids. 
+
+        ## Inputs
+         - `filename`: the location and name to save the file.
+         - `fps`: the frames per second to save the file as.
+        """
+        writer = cv2.VideoWriter(
+            filename, cv2.VideoWriter_fourcc(*"XVID"), fps, self.window_size # type: ignore
+        )
+        window_to_image_filter = vtk.vtkWindowToImageFilter()
+        window_to_image_filter.SetInput(self.render_window)
+        window_to_image_filter.SetScale(1)
+        window_to_image_filter.SetInputBufferTypeToRGB()
+        window_to_image_filter.ReadFrontBufferOff()
+
+        for i in tqdm(range(len(self.grids))):
+            self.current_grid_index = i
+            self.update_chart()
+            self.render_window.Render()
+
+            # Update the window to image filter
+            window_to_image_filter.Modified()
+            window_to_image_filter.Update()
+
+            image_data = window_to_image_filter.GetOutput()
+            width, height, _ = image_data.GetDimensions()
+            vtk_array = image_data.GetPointData().GetScalars()
+            np_image = np.flipud(
+                np.reshape(vtk_to_numpy(vtk_array), (height, width, 3))
+            )
+            np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
+
+            writer.write(np_image)
+
+        writer.release()
 
     def run(self) -> None:
         """
@@ -205,7 +263,7 @@ class BarChartVisualizer:
 if __name__ == "__main__":
     # Parameters for grid generation
     np.random.seed(42)
-    width, height, ground_height, num_steps = 21, 101, 101 * 0.1, 100_000
+    width, height, ground_height, num_steps = 21, 101, 51 * 0.1, 300_000
 
     # Generate the initial grid state
     initial_state = generate_initial_slope(
@@ -227,5 +285,11 @@ if __name__ == "__main__":
     fastCA.simulate(grids, params)
 
     # Visualize the data
-    visualizer = BarChartVisualizer(grids[::1000])
-    visualizer.run()
+    # the parameters to generate the video used in the presentation
+    visualizer = BarChartVisualizer(
+        grids[::400], camera_settings=(10, -35, -10, 2.0), window_size=(1920, 800)
+    )
+    # visualizer.run()
+
+    # Or to save a video
+    visualizer.save_video("videos/seed_42_flipping.avi")
