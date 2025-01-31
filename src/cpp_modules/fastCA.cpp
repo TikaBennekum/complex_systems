@@ -53,12 +53,14 @@ std::map<std::string, double> convert_dict(py::dict dict)
 }
 
 /*
-Simulate the Cellular Automata model 
+Simulate the Cellular Automata model. This method was written with the same functionality as CA.py run_simulation.
+The simulation states are saved in the grids array which is passed by reference.
 
 Params:
     grids: [num_steps x height x width x 2] ndarray
-    params: pyton dict with parameters (must contain EROSION_(K|))
-
+            first entry must be initial state grid
+            first / last row of initial state is the boundary condition
+    params: pyton dict with parameters (must contain entries for EROSION_(K|C|m|n))
 */
 void simulate(py::array_t<double> &grids, py::dict params)
 {

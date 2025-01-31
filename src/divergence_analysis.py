@@ -236,10 +236,6 @@ def create_threshold_colormap(threshold):
     return cmap, norm
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-
 def show_masked_grid(grid, threshold, title=""):
     """
     Show a grid while masking NaN and Inf values to avoid errors in plotting.
