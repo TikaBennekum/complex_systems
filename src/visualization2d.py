@@ -21,7 +21,7 @@ def compute_frame(grid):
     frame[:, width:, 2] = np.floor(
         255 / h_range * (grid[:, :, GROUND_HEIGHT] - np.min(grid[:, :, GROUND_HEIGHT]))
     )
-    
+
     log_height = np.sqrt(np.maximum(1e-6, grid[:, :, WATER_HEIGHT]))
     h_range = np.max(log_height) - np.min(log_height)
     frame[:, :width, 0] = np.floor(155 / h_range * (log_height - np.min(log_height)))

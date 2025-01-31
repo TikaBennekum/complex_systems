@@ -1,9 +1,9 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        Analysis of the divergence between perturbed and unperturbed data.
+File description:
+    Analysis of the divergence between perturbed and unperturbed data.
 """
 
 import numpy as np
@@ -12,6 +12,7 @@ import matplotlib.colors as mcolors
 
 perturbed_data = np.load("data/perturbed_data.npy")
 unperturbed_data = np.load("data/unperturbed_data.npy")
+
 
 def show_grid(grid, title=""):
     """
@@ -22,10 +23,11 @@ def show_grid(grid, title=""):
         title (str): The title of the plot.
     """
     plt.figure(figsize=(6, 6))
-    plt.imshow(grid, cmap='ocean')
+    plt.imshow(grid, cmap="ocean")
     plt.colorbar()
     plt.title(title)
     plt.show()
+
 
 def plot_initial_states():
     """
@@ -38,17 +40,21 @@ def plot_initial_states():
     grids_perturbed = np.load("data/perturbed_data.npy")
 
     # Extract the initial ground height for unperturbed data
-    unperturbed_ground_height = grids_unperturbed[0, :, :, 0]  # Assuming GROUND_HEIGHT index is 0
+    unperturbed_ground_height = grids_unperturbed[
+        0, :, :, 0
+    ]  # Assuming GROUND_HEIGHT index is 0
 
     # Extract the initial ground height for the first simulation of the perturbed data
-    perturbed_ground_height = grids_perturbed[0, 0, :, :, 0]  # 0 for the first simulation
+    perturbed_ground_height = grids_perturbed[
+        0, 0, :, :, 0
+    ]  # 0 for the first simulation
 
     # Create a figure for the plots
     plt.figure(figsize=(18, 6))  # Increased width for three plots
 
     # Plot unperturbed ground height
     ax1 = plt.subplot(1, 3, 1)
-    plt.imshow(unperturbed_ground_height, cmap='copper')
+    plt.imshow(unperturbed_ground_height, cmap="copper")
     plt.colorbar()
     plt.title("Initial State - Unperturbed")
     ax1.set_xticks([])  # Remove x-axis ticks
@@ -56,7 +62,7 @@ def plot_initial_states():
 
     # Plot perturbed ground height
     ax2 = plt.subplot(1, 3, 2)
-    plt.imshow(perturbed_ground_height, cmap='copper')
+    plt.imshow(perturbed_ground_height, cmap="copper")
     plt.colorbar()
     plt.title("Initial State - Perturbed")
     ax2.set_xticks([])  # Remove x-axis ticks
@@ -65,7 +71,7 @@ def plot_initial_states():
     # Plot the difference between perturbed and unperturbed ground heights
     ax3 = plt.subplot(1, 3, 3)
     difference = perturbed_ground_height - unperturbed_ground_height
-    plt.imshow(difference, cmap='terrain')
+    plt.imshow(difference, cmap="terrain")
     plt.colorbar()
     plt.title("Initial State - Difference")
     ax3.set_xticks([])  # Remove x-axis ticks
@@ -86,8 +92,8 @@ def plot_divergence(perturbed_file, unperturbed_file):
         unperturbed_file (str): Path to the unperturbed data file.
     """
     # Load perturbed and unperturbed data
-    perturbed_data = np.load(perturbed_file)  
-    unperturbed_data = np.load(unperturbed_file)  
+    perturbed_data = np.load(perturbed_file)
+    unperturbed_data = np.load(unperturbed_file)
 
     print(unperturbed_data.shape)
     print(perturbed_data.shape)
@@ -103,7 +109,7 @@ def plot_divergence(perturbed_file, unperturbed_file):
 
     # Extract ground and water divergence
     ground_divergence = mean_divergence[:, 0]  # Shape: (1000,)
-    water_divergence = mean_divergence[:, 1]   # Shape: (1000,)
+    water_divergence = mean_divergence[:, 1]  # Shape: (1000,)
 
     # Time axis
     timesteps = np.arange(len(ground_divergence))
@@ -135,6 +141,7 @@ def plot_divergence(perturbed_file, unperturbed_file):
     plt.savefig("data/water_divergence.png")
     plt.show()
 
+
 def plot_hamming(perturbed_file, unperturbed_file, threshold=0.002):
     """
     Load perturbed and unperturbed data, binarize them, compute the Hamming distance,
@@ -146,25 +153,37 @@ def plot_hamming(perturbed_file, unperturbed_file, threshold=0.002):
         threshold (float): Threshold for binarizing the data.
     """
     # Load perturbed and unperturbed data
-    perturbed_data = np.load(perturbed_file)  # Shape: (num_simulations, num_timesteps, height, width, NUM_CELL_FLOATS)
-    unperturbed_data = np.load(unperturbed_file)  # Shape: (num_timesteps, height, width, NUM_CELL_FLOATS)
+    perturbed_data = np.load(
+        perturbed_file
+    )  # Shape: (num_simulations, num_timesteps, height, width, NUM_CELL_FLOATS)
+    unperturbed_data = np.load(
+        unperturbed_file
+    )  # Shape: (num_timesteps, height, width, NUM_CELL_FLOATS)
 
     print(unperturbed_data.shape)  # e.g., (1000, 101, 21, 2)
-    print(perturbed_data.shape)     # e.g., (10, 1000, 101, 21, 2)
+    print(perturbed_data.shape)  # e.g., (10, 1000, 101, 21, 2)
 
     # Binarize data (set values < threshold to 0, others to 1)
     perturbed_bin = (perturbed_data >= threshold).astype(int)
     unperturbed_bin = (unperturbed_data >= threshold).astype(int)
 
     # Expand unperturbed data to match the perturbed shape
-    unperturbed_expanded = np.expand_dims(unperturbed_bin, axis=0)  # Shape: (1, 1000, 101, 21, 2)
-    unperturbed_repeated = np.repeat(unperturbed_expanded, perturbed_data.shape[0], axis=0)  # Match simulations
+    unperturbed_expanded = np.expand_dims(
+        unperturbed_bin, axis=0
+    )  # Shape: (1, 1000, 101, 21, 2)
+    unperturbed_repeated = np.repeat(
+        unperturbed_expanded, perturbed_data.shape[0], axis=0
+    )  # Match simulations
 
     # Compute Hamming distance
-    hamming = np.sum(perturbed_bin != unperturbed_repeated, axis=-1)  # Shape: (num_simulations, 1000, 101, 21)
+    hamming = np.sum(
+        perturbed_bin != unperturbed_repeated, axis=-1
+    )  # Shape: (num_simulations, 1000, 101, 21)
 
     # Average over spatial dimensions (width=21, height=101)
-    spatial_avg_hamming = np.mean(hamming, axis=(2, 3))  # Shape: (num_simulations, 1000)
+    spatial_avg_hamming = np.mean(
+        hamming, axis=(2, 3)
+    )  # Shape: (num_simulations, 1000)
 
     # Average over all perturbed simulations to get the grand average
     mean_hamming = np.mean(spatial_avg_hamming, axis=0)  # Shape: (1000,)
@@ -183,7 +202,6 @@ def plot_hamming(perturbed_file, unperturbed_file, threshold=0.002):
     plt.yscale("log")
     plt.tight_layout()
     plt.show()
-
 
     # Plot
     plt.figure(figsize=(8, 6))
@@ -211,16 +229,16 @@ def create_threshold_colormap(threshold):
         cmap, norm: The colormap and normalization to use in imshow.
     """
     colors = ["#D2B48C", "#0000FF"]  # Light brown (beige) and blue
-    boundaries = [0, threshold, 1000000]  
+    boundaries = [0, threshold, 1000000]
     cmap = mcolors.ListedColormap(colors)
     norm = mcolors.BoundaryNorm(boundaries, cmap.N)
 
     return cmap, norm
 
 
-
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 def show_masked_grid(grid, threshold, title=""):
     """
@@ -238,6 +256,7 @@ def show_masked_grid(grid, threshold, title=""):
     plt.title(title)
     plt.show()
 
+
 # Try plotting with masked values
 show_masked_grid(perturbed_data[0, -1, :, :, 1], 0.002, title="Perturbed Water Height")
 show_masked_grid(unperturbed_data[-1, :, :, 1], 0.002, title="Unperturbed Water Height")
@@ -246,4 +265,3 @@ show_masked_grid(unperturbed_data[-1, :, :, 1], 0.002, title="Unperturbed Water 
 plot_divergence("data/perturbed_data.npy", "data/unperturbed_data.npy")
 plot_hamming("data/perturbed_data.npy", "data/unperturbed_data.npy")
 plot_initial_states()
-

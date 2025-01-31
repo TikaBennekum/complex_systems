@@ -1,9 +1,9 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        This file contains a 3D viewer class for our system.
+File description:
+    This file contains a 3D viewer class for our system.
 """
 
 import vtk
@@ -14,6 +14,7 @@ from CA import EROSION_C, EROSION_EXPONENT, EROSION_K, N
 from cpp_modules import fastCA
 from initial_state_generation import add_central_flow, generate_initial_slope
 from constants import *
+
 
 class BarChartVisualizer:
     def __init__(self, grids: np.ndarray, colors: List[str] = ["peru", "deepskyblue"]):
@@ -54,7 +55,7 @@ class BarChartVisualizer:
         """
         Create a slider widget for selecting the grid index.
 
-        ## Returns 
+        ## Returns
          - A configured `vtkSliderWidget`.
         """
         slider_rep = vtk.vtkSliderRepresentation2D()
@@ -75,7 +76,7 @@ class BarChartVisualizer:
         slider_widget = vtk.vtkSliderWidget()
         slider_widget.SetInteractor(self.interactor)
         slider_widget.SetRepresentation(slider_rep)
-        slider_widget.AddObserver("InteractionEvent", self.slider_callback) # type: ignore
+        slider_widget.AddObserver("InteractionEvent", self.slider_callback)  # type: ignore
 
         return slider_widget
 
@@ -88,7 +89,7 @@ class BarChartVisualizer:
          - `event`: The event triggering the callback.
         """
         slider_rep = obj.GetRepresentation()
-        value = slider_rep.GetValue() # type: ignore
+        value = slider_rep.GetValue()  # type: ignore
         snapped_value = int(round(value))
         slider_rep.SetValue(snapped_value)  # type: ignore # Snap slider value to an integer
         if snapped_value != self.current_grid_index:
@@ -138,7 +139,9 @@ class BarChartVisualizer:
 
         self.render_window.Render()
 
-    def add_cube(self, i: int, j: int, base_height: float, height: float, layer: int) -> None:
+    def add_cube(
+        self, i: int, j: int, base_height: float, height: float, layer: int
+    ) -> None:
         """
         Add a single cube to the polydata.
 
@@ -156,15 +159,24 @@ class BarChartVisualizer:
         # Add points for the cube
         start_id = self.points.GetNumberOfPoints()
         vertices = [
-            (x_min, y_min, z_min), (x_max, y_min, z_min), (x_max, y_max, z_min), (x_min, y_max, z_min),  # Bottom
-            (x_min, y_min, z_max), (x_max, y_min, z_max), (x_max, y_max, z_max), (x_min, y_max, z_max),  # Top
+            (x_min, y_min, z_min),
+            (x_max, y_min, z_min),
+            (x_max, y_max, z_min),
+            (x_min, y_max, z_min),  # Bottom
+            (x_min, y_min, z_max),
+            (x_max, y_min, z_max),
+            (x_max, y_max, z_max),
+            (x_min, y_max, z_max),  # Top
         ]
         for vertex in vertices:
             self.points.InsertNextPoint(vertex)
 
         # Define the six faces of the cube
         faces = [
-            (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7),  # Side faces
+            (0, 1, 5, 4),
+            (1, 2, 6, 5),
+            (2, 3, 7, 6),
+            (3, 0, 4, 7),  # Side faces
             (0, 1, 2, 3),  # Bottom face
             (4, 5, 6, 7),  # Top face
         ]
@@ -196,7 +208,9 @@ if __name__ == "__main__":
     width, height, ground_height, num_steps = 21, 101, 101 * 0.1, 100_000
 
     # Generate the initial grid state
-    initial_state = generate_initial_slope(height, width, ground_height, noise_amplitude=0.2, noise_type='white')
+    initial_state = generate_initial_slope(
+        height, width, ground_height, noise_amplitude=0.2, noise_type="white"
+    )
     add_central_flow(initial_state, 1)
 
     # Create grids and simulate data
