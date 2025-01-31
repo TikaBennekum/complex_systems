@@ -1,4 +1,4 @@
-data/*
+
 
 
 # Byte-compiled / optimized / DLL files
@@ -10,7 +10,6 @@ __pycache__/
 src/*.o
 *.so
 
-data
 
 # Distribution / packaging
 .Python
