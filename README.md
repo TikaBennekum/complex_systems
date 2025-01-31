@@ -1,10 +1,6 @@
 # complex_systems
 Complex systems: River flooding dynamics
 
-<<<<<<< HEAD
-
-
-
 # How to install
 ## Python dependencies:
 view pyproject.toml
