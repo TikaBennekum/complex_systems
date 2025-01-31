@@ -149,7 +149,7 @@ if __name__ == "__main__":
         height=101,
         ground_height=101*.1,
         init_water_height=1,
-        num_steps=1300,
+        num_steps=1000,
         max_perturbation=0.1
     )
 
