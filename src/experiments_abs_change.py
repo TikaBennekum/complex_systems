@@ -73,7 +73,7 @@ def change_every_n_steps(
             print(gen % 10, end="", flush=True)
         gen_grids[0] = last_state
         fastCA.simulate(gen_grids, params)
-        
+
         if gen >= skip_initial_gens:
             diffs[gen] = metric(
                 last_state[:, :, WATER_HEIGHT], gen_grids[-1, :, :, WATER_HEIGHT]
@@ -113,7 +113,7 @@ def small_grid_change_experiment(
 
 def grid_change_histogram(diffs):
     """A histogram of the grid change."""
-    hist, bins = np.histogram(diffs, bins=np.logspace(-2, 1, 50, base=10))
+    hist, bins = np.histogram(diffs, bins=np.logspace(-5, -1, 50, base=10))
 
     hist = hist / len(diffs)
     plt.plot(1 / 2 * (bins[:-1] + bins[1:]), hist, linestyle="", marker="o")

@@ -1,10 +1,10 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        This file contains the system with which simulations are run and 
-        experiments are performed.
+File description:
+    This file contains the system with which simulations are run and
+    experiments are performed.
 """
 
 from typing import Any

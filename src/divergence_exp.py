@@ -1,9 +1,9 @@
 """
-    Course: Complex systems
-    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+Course: Complex systems
+Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-    File description:
-        Runs simulations with perturbed and unperturbed initial states.
+File description:
+    Runs simulations with perturbed and unperturbed initial states.
 """
 
 import numpy as np
@@ -13,8 +13,17 @@ from CA import *
 from initial_state_generation import generate_initial_slope, add_central_flow
 from constants import *
 
+
 class Experiment:
-    def __init__(self, width, height, ground_height, init_water_height, num_steps, max_perturbation):
+    def __init__(
+        self,
+        width,
+        height,
+        ground_height,
+        init_water_height,
+        num_steps,
+        max_perturbation,
+    ):
         # Set simulation parameters
         self.width = width
         self.height = height
@@ -39,12 +48,17 @@ class Experiment:
         """Generate initial states for the simulation."""
         # Generate initial ground slope with optional noise
         initial_state = generate_initial_slope(
-            self.height, self.width, 
-            slope_top=self.ground_height, slope_bot=0, 
-            noise_amplitude=0.2, noise_type='white'
+            self.height,
+            self.width,
+            slope_top=self.ground_height,
+            slope_bot=0,
+            noise_amplitude=0.2,
+            noise_type="white",
         )
         # Add central flow for water
-        initial_state = add_central_flow(initial_state, flow_amount=self.init_water_height)
+        initial_state = add_central_flow(
+            initial_state, flow_amount=self.init_water_height
+        )
 
         # Set initial states for unperturbed and perturbed grids
         self.grids_unperturbed[0] = initial_state.copy()
@@ -56,10 +70,11 @@ class Experiment:
         The cell is located two rows below the water source and
         contains a single random value between -max_perturbation and max_perturbation.
         """
-        perturbation_value = np.random.uniform(-self.max_perturbation, self.max_perturbation)
+        perturbation_value = np.random.uniform(
+            -self.max_perturbation, self.max_perturbation
+        )
         self.grids_perturbed[:, 1, self.width // 2, GROUND_HEIGHT] += perturbation_value
 
-    
     def plot_initial_states(self):
         """Plot the initial states of the grids."""
         # Plot unperturbed ground height
@@ -76,7 +91,10 @@ class Experiment:
 
     def plot_initial_difference(self):
         """Plot the initial difference in ground height between perturbed and unperturbed grids."""
-        difference = self.grids_perturbed[0, :, :, GROUND_HEIGHT] - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        difference = (
+            self.grids_perturbed[0, :, :, GROUND_HEIGHT]
+            - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        )
         plt.imshow(difference, cmap="seismic", interpolation="nearest")
         plt.colorbar(label="Height Difference")
         plt.title("Initial Terrain Height Difference (Time 0)")
@@ -84,10 +102,13 @@ class Experiment:
 
     def plot_time_0_difference(self):
         """
-        Visualize the difference in ground height at time 0 
+        Visualize the difference in ground height at time 0
         between the unperturbed and perturbed simulations.
         """
-        ground_diff = self.grids_perturbed[0, :, :, GROUND_HEIGHT] - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        ground_diff = (
+            self.grids_perturbed[0, :, :, GROUND_HEIGHT]
+            - self.grids_unperturbed[0, :, :, GROUND_HEIGHT]
+        )
         plt.figure(figsize=(8, 6))
         plt.imshow(ground_diff, cmap="seismic", interpolation="nearest")
         plt.colorbar(label="Height Difference")
@@ -130,12 +151,14 @@ class Experiment:
         print("Simulations completed.")
 
         print("Saving results...")
-        self.save_results('data/unperturbed_data.npy', 'data/perturbed_data.npy')
+        self.save_results("data/unperturbed_data.npy", "data/perturbed_data.npy")
         print("Results saved.")
 
     def run_multiple(self, num_runs):
         """Run multiple simulations with different perturbations."""
-        perturbed_data = np.zeros([num_runs, self.num_steps, self.height, self.width, NUM_CELL_FLOATS])
+        perturbed_data = np.zeros(
+            [num_runs, self.num_steps, self.height, self.width, NUM_CELL_FLOATS]
+        )
         self.initialize_states()
         copy = self.grids_unperturbed.copy()
         fastCA.simulate(self.grids_unperturbed, self.params)
@@ -144,10 +167,9 @@ class Experiment:
             self.apply_perturbation()
             fastCA.simulate(self.grids_perturbed, self.params)
             perturbed_data[i] = self.grids_perturbed.copy()
-        np.save('data/perturbed_data.npy', perturbed_data)
-        np.save('data/unperturbed_data.npy', self.grids_unperturbed)
+        np.save("data/perturbed_data.npy", perturbed_data)
+        np.save("data/unperturbed_data.npy", self.grids_unperturbed)
         print("Results saved.")
-
 
 
 if __name__ == "__main__":
@@ -155,10 +177,10 @@ if __name__ == "__main__":
     exp = Experiment(
         width=21,
         height=101,
-        ground_height=101*.1,
+        ground_height=101 * 0.1,
         init_water_height=1,
         num_steps=1000,
-        max_perturbation=0.1
+        max_perturbation=0.1,
     )
 
     # Run the full simulation workflow
