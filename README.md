@@ -22,3 +22,4 @@ To run the number of streams / entropy experiments:
     experiments_num_streams.py
 
 To run the (unsuccessful) SOC / avalanche experiments:
+    experiments_abs_change.py
