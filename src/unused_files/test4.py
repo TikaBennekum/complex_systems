@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 
-
 class Cell:
     def __init__(self, water_present=0, water_height=0, ground_height=0):
         self.ground_height = ground_height  # Ground height in the cell
@@ -14,15 +13,10 @@ class CA:
         self.width = width
         self.height = height
         # Initialize the grid with cells, each having a ground height
-        self.grid = [
-            [Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)]
-            for i in range(height)
-        ]
+        self.grid = [[Cell(ground_height=ground_height - (i * 0.1)) for _ in range(width)] for i in range(height)]
         # Set the center cell at the top row with some water
         self.grid[0][width // 2].water_present = 1
-        self.grid[0][
-            width // 2
-        ].water_height = 50  # Arbitrary water height for the top-center cell
+        self.grid[0][width // 2].water_height = 50  # Arbitrary water height for the top-center cell
 
     def apply_rules(self, i, j, previous_grid):
         """Apply the water flow rules based on the previous grid state."""
@@ -37,16 +31,7 @@ class CA:
         slopes = []
 
         # Collect neighbors and calculate slopes
-        for di, dj in [
-            (0, -1),
-            (0, 1),
-            (1, 0),
-            (-1, 0),
-            (-1, -1),
-            (-1, 1),
-            (1, -1),
-            (1, 1),
-        ]:
+        for di, dj in [(0, -1), (0, 1), (1, 0), (-1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.height and 0 <= nj < self.width:
                 neighbor = previous_grid[ni][nj]
@@ -54,11 +39,8 @@ class CA:
                 indices.append((ni, nj))
                 # Calculate slope to the neighbor
                 distance = np.sqrt(di**2 + dj**2)
-                slope = (
-                    previous_cell.ground_height
-                    + previous_cell.water_height
-                    - (neighbor.ground_height + neighbor.water_height)
-                ) / distance
+                slope = (previous_cell.ground_height + previous_cell.water_height -
+                        (neighbor.ground_height + neighbor.water_height)) / distance
                 slopes.append(slope)
 
         # Distribute water based on slopes
@@ -100,17 +82,8 @@ class CA:
     def update_grid(self):
         """Update the grid based on the previous state."""
         # Create a copy of the grid to represent the previous state
-        previous_grid = [
-            [
-                Cell(
-                    water_present=cell.water_present,
-                    water_height=cell.water_height,
-                    ground_height=cell.ground_height,
-                )
-                for cell in row
-            ]
-            for row in self.grid
-        ]
+        previous_grid = [[Cell(water_present=cell.water_present, water_height=cell.water_height, ground_height=cell.ground_height)
+                          for cell in row] for row in self.grid]
 
         # Apply the rules to update the current grid based on the previous state
         for i in range(self.height):
@@ -127,9 +100,7 @@ class CA:
             # Create a frame for the video showing water height
             frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
-            max_water_height = max(
-                cell.water_height for row in self.grid for cell in row
-            )
+            max_water_height = max(cell.water_height for row in self.grid for cell in row)
             if max_water_height == 0:
                 max_water_height = 1  # Avoid division by zero
 
@@ -138,14 +109,8 @@ class CA:
                     cell = self.grid[i][j]
                     if cell.water_present == 1:
                         # Lighter blue intensity proportional to water height
-                        intensity = min(
-                            255, max(0, int(self.grid[i][j].water_height * 5))
-                        )  # Scale and clamp intensity
-                        frame[i, j] = [
-                            intensity,
-                            255 - intensity,
-                            255,
-                        ]  # Light blue gradient
+                        intensity = min(255, max(0, int(self.grid[i][j].water_height * 5)))  # Scale and clamp intensity
+                        frame[i, j] = [intensity, 255 - intensity, 255]  # Light blue gradient
 
                     else:
                         frame[i, j] = [255, 255, 255]  # Light brown for no water
@@ -156,9 +121,7 @@ class CA:
         # Save all frames as a video
         if frames:
             height, width, _ = frames[0].shape
-            out = cv2.VideoWriter(
-                output_file, cv2.VideoWriter_fourcc(*"mp4v"), 10, (width, height)
-            )
+            out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), 10, (width, height))
             for frame in frames:
                 out.write(frame)
             out.release()
@@ -167,8 +130,9 @@ class CA:
             print("No frames to save!")
 
 
+
 # Example usage
 width, height, ground_height = 100, 100, 50
-output_file = "videos/water_simulation.mp4"
+output_file = 'videos/water_simulation.mp4'
 ca = CA(width, height, ground_height)
 ca.run_simulation(60, output_file)

@@ -1,28 +1,31 @@
 """
-Course: Complex systems
-Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-File description:
-    File to test thes system interactively.
+    File description:
+        File to test thes system interactively.
 """
 
 import numpy as np
 import vtk
 from vtkmodules.vtkCommonColor import vtkNamedColors
 from vtkmodules.vtkCommonCore import vtkCommand
-from vtkmodules.vtkInteractionWidgets import vtkSliderRepresentation2D, vtkSliderWidget
-from vtkmodules.vtkRenderingCore import vtkRenderWindow, vtkRenderWindowInteractor
-from initial_state_generation import generate_initial_slope
-from slider_example import (
-    make_2d_slider_widget,
-    Slider2DProperties,
-    make_slider_properties,
+from vtkmodules.vtkInteractionWidgets import (
+    vtkSliderRepresentation2D,
+    vtkSliderWidget
 )
+from vtkmodules.vtkRenderingCore import (
+    vtkRenderWindow,
+    vtkRenderWindowInteractor
+)
+from initial_state_generation import generate_initial_slope
+from slider_example import make_2d_slider_widget, Slider2DProperties, make_slider_properties
 
 
 class SliderCallback:
     def __init__(self, cube):
-        """ """
+        """
+        """
         self.cube = cube
 
     def __call__(self, caller, ev):
@@ -33,7 +36,6 @@ class SliderCallback:
 
 
 def add_cube():
-    """Function to add cubes."""
 
     # Create a vtkAppendPolyData to merge individual bar actors
     append_filter = vtk.vtkAppendPolyData()
@@ -57,16 +59,12 @@ def add_cube():
 
     return actor, cube
 
-
 def update_cube_height(value, bottom, cube):
-    """Updates the cube."""
     cube.SetZLength(value)  # Height of the bar
 
-    # Set the position of the bar
+            # Set the position of the bar
     transform = vtk.vtkTransform()
-    transform.Translate(
-        0.0, 0.0, (value + bottom) / 2.0
-    )  # Translate to proper location
+    transform.Translate(0.0, 0.0, (value + bottom) / 2.0 )  # Translate to proper location
     transform_filter = vtk.vtkTransformPolyDataFilter()
     transform_filter.SetTransform(transform)
     transform_filter.SetInputConnection(cube.GetOutputPort())
@@ -75,6 +73,7 @@ def update_cube_height(value, bottom, cube):
 
 
 def main():
+    
 
     # Create a renderer, render window, and render window interactor
     renderer = vtk.vtkRenderer()
@@ -89,10 +88,11 @@ def main():
     # sp.Range.value = 0
     widget = make_2d_slider_widget(sp, render_window_interactor)
 
+
     # Add the actor to the renderer
     bar_chart_actor, cube = add_cube()
     callback = SliderCallback(cube)
-
+    
     bar_chart_actor.GetProperty().SetColor(vtkNamedColors().GetColor3d("red"))
     # callback.add_actor(bar_chart_actor, step_nr)
     # if not step_nr == 9:
@@ -113,7 +113,6 @@ def main():
     # Start the rendering loop
     render_window.Render()
     render_window_interactor.Start()
-
 
 if __name__ == "__main__":
     main()

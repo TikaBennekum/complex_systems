@@ -1,10 +1,10 @@
 """
-Course: Complex systems
-Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
-File description:
-    This file contains the system with which simulations are run and
-    experiments are performed.
+    File description:
+        This file contains the system with which simulations are run and 
+        experiments are performed.
 """
 
 from typing import Any
@@ -58,7 +58,6 @@ class CA:
         self.neighbor_list = neighbor_list
 
     def enforce_boundary(self):
-        """Boundaries are enforced on bottom and top of the grid."""
         global FLOW_RATE
         # Set the center cell at the top row with some water
         self.grid[0, self.width // 2, WATER_HEIGHT] = (
@@ -129,7 +128,6 @@ class CA:
         assert current_cell[WATER_HEIGHT] > -1e-8
 
     def erosion_rule(self, K: float, Q: float, S: float = 0, C: float = EROSION_C):
-        """Erosion rule implemented based on paper."""
         if Q <= 0:
             return 0
         return (
@@ -141,7 +139,6 @@ class CA:
     def create_indices_slopes(
         self, i: int, j: int, previous_grid: NDArray, previous_cell: NDArray
     ) -> tuple[list[tuple[int, int]], list[float]]:
-        """Creates indices for slopes."""
         neighbors: list[NDArray] = []
         indices: list[tuple[int, int]] = []
         slopes: list[float] = []
