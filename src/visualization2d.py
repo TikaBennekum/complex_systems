@@ -3,7 +3,7 @@
     Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
 
     File description:
-        This file contains the code to visualis our system in a 2D video.
+        This file contains the code to visualise our system in a 2D video.
 """
 
 import numpy as np
