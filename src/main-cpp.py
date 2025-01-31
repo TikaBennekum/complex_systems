@@ -198,17 +198,12 @@ def mean_num_streams_graph(data, output_file = None, slopes=np.linspace(0.01,1,1
         plot of mean number of streams depending on the parameters - saved to output_file
         plot of the histograms for each slope with constant flow - shown to user   
     """    
-    # assert data.shape[0] == len(slopes)
-    # assert data.shape[1] == len(flows)
     width = data.shape[2]
     data = data / np.sum(data, axis=2, keepdims=True)
-    # print(data)
     mean_num_streams = np.sum(data * np.arange(width), axis=2)
     print(mean_num_streams.shape, mean_num_streams)
     for i,flow in enumerate(flows):
         plt.plot(slopes, mean_num_streams[:,i]-1, linestyle = '-', marker = 'o', label=(flow))
-    # plt.yscale('log')
-    # plt.xscale('log')
     plt.ylabel('number of streams -1')
     plt.xlabel('mean slope')
     plt.legend(title='Water Flow')

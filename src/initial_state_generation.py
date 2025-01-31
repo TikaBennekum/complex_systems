@@ -1,3 +1,11 @@
+"""
+    Course: Complex systems
+    Names: Marvin Frommer, Wessel Beumer, Paul Jungnickel, Tika van Bennekum
+
+    File description:
+        In this file the initial state of the system is generated.
+"""
+
 import numpy as np
 from noise import pnoise2
 
@@ -14,6 +22,7 @@ def generate_initial_slope(
     noise_amplitude: float = 0,
     noise_type="perlin",
 ):
+    """ Function to generate the initial slope of the terrain. """
 
     grid = np.zeros([height, width, NUM_CELL_FLOATS])
     height_gradient = np.linspace(slope_top, slope_bot, height)
@@ -31,6 +40,7 @@ def generate_initial_slope(
 
 
 def add_central_flow(grid, flow_amount):
+    """ Adds a flow in the top centrum of the grid. """
     grid[0, grid.shape[1] // 2, WATER_HEIGHT] = flow_amount
 
     return grid
