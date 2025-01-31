@@ -43,11 +43,20 @@ def exp_erosion_rate():
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    k = np.arange(0.1, 0.5, 0.05)
+    k = np.arange(0.1, 0.5, 0.02)
     flow_rate = 1
 
     for i in k:
-        erosion_per_iteration = simulation(42, np.round(i, 2), flow_rate)
+        erosion_per_iteration = np.array([])
+        for j in range(5): # Number of runs, the mean is taken from
+            j = j + 40
+            new = simulation(j, np.round(i, 2), flow_rate)
+            if len(erosion_per_iteration) == 0:
+                erosion_per_iteration = new
+            else:
+                erosion_per_iteration += new
+        erosion_per_iteration = np.array(erosion_per_iteration) / 5
+
         print(np.round(i, 2))
         total_erosion.append(erosion_per_iteration[-1])
         plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, label=f'Erosion rate={np.round(i, 2)}')
@@ -75,11 +84,20 @@ def exp_flow_rate():
     plt.figure(figsize=(10, 6))
 
     total_erosion = []
-    flow_rate = np.arange(1, 9, 1)
+    flow_rate = np.arange(1, 9, 0.25)
     k = 0.1
 
     for i in flow_rate:
-        erosion_per_iteration = simulation(42, k, i)
+        erosion_per_iteration = np.array([])
+        for j in range(5): # Number of runs, the mean is taken from
+            j = j + 40
+            new = simulation(j, k, i)
+            if len(erosion_per_iteration) == 0:
+                erosion_per_iteration = new
+            else:
+                erosion_per_iteration += new
+        erosion_per_iteration = np.array(erosion_per_iteration) / 5
+
         print(i)
         total_erosion.append(erosion_per_iteration[-1])
         plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, label=f'flow rate={i}')
@@ -99,118 +117,10 @@ def exp_flow_rate():
     plt.grid(True, linestyle='--')
     plt.savefig('../data/exp_flow_rate2.png')
 
-def exp_slope():
-    """
-    First plot: Compares the total erosion over time for different intitial slopes.
-    Second plot: Shows total final erosion for linearly different initial slopes.
-    """
-    plt.figure(figsize=(10, 6))
-
-    total_erosion = []
-    flow_rate = 1
-    k = 0.1
-    slope = np.arange(101*0.1, 101*0.15, 0.5)
-    print(slope)
-
-    for i in slope:
-        i = np.round(i, 1)
-        erosion_per_iteration = simulation(42, k, flow_rate, i)
-        print(i)
-        total_erosion.append(erosion_per_iteration[-1])
-        plt.plot(range(1, len(erosion_per_iteration) + 1), erosion_per_iteration, label=f'flow rate={i}')
-
-    plt.xlabel('Nr of iterations')
-    plt.ylabel('Total Erosion')
-    plt.title('Erosion over time vor various slopes')
-    plt.grid(True, linestyle='--')
-    plt.legend()
-    plt.savefig('../data/exp_slope.png')
-
-    plt.figure(figsize=(10, 6))
-    plt.scatter(slope, total_erosion, marker='o')
-    plt.xlabel('slope')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear slope increase -> linear total erosion decrease')
-    plt.grid(True, linestyle='--')
-    plt.savefig('../data/exp_slope2.png')
-
-def exp_incr_flow_decr_eros():
-    """
-    First plot: Shows total erosion for a simultaneously increasing flow rate and decreasing erosion rate.
-    """
-    plt.figure(figsize=(10, 6))
-
-    total_erosion = []
-    flow_rate = np.arange(2, 9, 1)
-    k = 1 / flow_rate
-    k = k
-    print(flow_rate)
-    print(k)
-
-    for i in range(len(flow_rate)):
-        erosion_per_iteration = simulation(42, k[i], flow_rate[i])
-        print(i)
-        total_erosion.append(erosion_per_iteration[-1])
-
-    # Create combined labels for x-axis
-    labels = [f"k: {k_val:.2f}, flow_rate: {flow_rate_val}" for k_val, flow_rate_val in zip(k, flow_rate)]
-
-    # Plot data
-    plt.figure(figsize=(10, 6))
-    plt.scatter(range(len(flow_rate)), total_erosion, marker='o')  # Use indices for x-values
-    plt.xticks(ticks=range(len(flow_rate)), labels=labels, rotation=45, ha='right')  # Add combined labels
-    plt.xlabel('k and Flow rate')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear flow increase, linear erosion rate decrease-> ?')
-    plt.grid(True, linestyle='--')
-    plt.tight_layout()  # Adjust layout to fit rotated labels
-    plt.savefig('../data/exp_incr_flow_decr_eros.png')
-
-def exp_incr_slope_incr_eros():
-    """
-    First plot: Shows total erosion for a simultaneously increasing flow rate and decreasing erosion rate.
-    """
-    plt.figure(figsize=(10, 6))
-
-    total_erosion = []
-    flow_rate = 1
-    slope = np.arange(101*0.1, 101*0.15, 0.5)
-    k = 1 / slope
-    k = np.round(k, 3)
-    print(slope)
-    print(k)
-
-    for i in range(len(slope)):
-        erosion_per_iteration = simulation(42, k[i], flow_rate, slope[i])
-        print(i)
-        total_erosion.append(erosion_per_iteration[-1])
-
-    # Create combined labels for x-axis
-    labels = [f"k: {k_val:.2f}, slope: {np.round(slope_val, 3)}" for k_val, slope_val in zip(k, slope)]
-
-    # Plot data
-    plt.figure(figsize=(10, 6))
-    plt.scatter(range(len(slope)), total_erosion, marker='o')  # Use indices for x-values
-    plt.xticks(ticks=range(len(slope)), labels=labels, rotation=45, ha='right')  # Add combined labels
-    plt.xlabel('k and slope')
-    plt.ylabel('Total Erosion')
-    plt.title('Linear slope increase, linear erosion rate increase -> ?')
-    plt.grid(True, linestyle='--')
-    plt.tight_layout()  # Adjust layout to fit rotated labels
-    plt.savefig('../data/exp_incr_slope_incr_eros.png')
-
 if __name__ == "__main__":
     """
     Calls the different experiments.
     """
+
     exp_erosion_rate()
     exp_flow_rate()
-    exp_slope()
-    exp_incr_flow_decr_eros()
-    exp_incr_slope_incr_eros()
-
-
-
-
-
-    

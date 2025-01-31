@@ -31,11 +31,11 @@ class SliderCallback:
     def __call__(self, caller, ev):
         slider_widget = caller
         value = int(slider_widget.representation.value)
-        # print(self.the_cube)
         self.cube.SetZLength(value)
 
 
 def add_cube():
+    """ Function to add cube. """
 
     # Create a vtkAppendPolyData to merge individual bar actors
     append_filter = vtk.vtkAppendPolyData()
@@ -60,6 +60,7 @@ def add_cube():
     return actor, cube
 
 def update_cube_height(value, bottom, cube):
+    """ Function to update cube. """
     cube.SetZLength(value)  # Height of the bar
 
             # Set the position of the bar
@@ -73,8 +74,6 @@ def update_cube_height(value, bottom, cube):
 
 
 def main():
-    
-
     # Create a renderer, render window, and render window interactor
     renderer = vtk.vtkRenderer()
     render_window = vtk.vtkRenderWindow()
@@ -94,9 +93,6 @@ def main():
     callback = SliderCallback(cube)
     
     bar_chart_actor.GetProperty().SetColor(vtkNamedColors().GetColor3d("red"))
-    # callback.add_actor(bar_chart_actor, step_nr)
-    # if not step_nr == 9:
-    #     bar_chart_actor.VisibilityOff()
     renderer.AddActor(bar_chart_actor)
 
     widget.AddObserver(vtkCommand.InteractionEvent, callback)

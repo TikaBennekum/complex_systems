@@ -75,7 +75,6 @@ def run_single_experiment(
         saved_grids: simulation states saved every steps_per_gen timesteps with shape [num_steps //steps_per_gen x height x width x NUM_CELL_FLOATS]
     """
     np.random.seed(42)
-    # width, height, ground_height, num_steps = 101, 1001, 101*.1, 10000
     ground_height = height * mean_slope
     initial_state = generate_initial_slope(
         height, width, ground_height, noise_amplitude=0.2, noise_type="white"
@@ -158,12 +157,10 @@ def num_streams_histogram(
     if plot_results:
         stream_video(grid, scale=1)
 
-        # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
         plt.imshow(grid[-1, :, :, WATER_HEIGHT])
         plt.colorbar()
         plt.show()
 
-        # plt.hist(num_streams, width)
         plt.plot(num_streams, linestyle="", marker="o")
         plt.savefig("data/num_stream_histogram.png")
 
@@ -269,17 +266,14 @@ def mean_num_streams_graph_flow(data, output_file = None, slopes=np.linspace(0.0
         plot of mean number of streams depending on the parameters - saved to output_file
         plot of the histograms for each slope with constant flow - shown to user
     """
-    # assert data.shape[0] == len(slopes)
-    # assert data.shape[1] == len(flows)
     width = data.shape[2]
     data = data / np.sum(data, axis=2, keepdims=True)
-    # print(data)
+
     mean_num_streams = np.sum(data * np.arange(width), axis=2)
     print(mean_num_streams.shape, mean_num_streams)
     for i,flow in enumerate(flows):
         plt.plot(slopes, mean_num_streams[:,i], linestyle = '-', marker = 'o', label=(flow))
-    # plt.yscale('log')
-    # plt.xscale('log')
+
     plt.title('Number of Streams for different Water Flow Rates')
     plt.ylabel('number of streams')
     plt.xlabel('mean slope')
@@ -370,9 +364,6 @@ def analyze_num_streams_experiment_erosion(
     print(num_streams)
 
     mean_num_streams_graph_erosion(num_streams, output_file, slopes, erosions)
-    # plt.imshow(num_streams[:,2])
-    # plt.colorbar()
-    # plt.show()
 
 
 def mean_num_streams_graph_erosion(
@@ -394,17 +385,12 @@ def mean_num_streams_graph_erosion(
         plot of mean number of streams depending on the parameters - saved to output_file
         plot of the histograms for each slope with constant flow - shown to user
     """
-    # assert data.shape[0] == len(slopes)
-    # assert data.shape[1] == len(flows)
     width = data.shape[2]
     data = data / np.sum(data, axis=2, keepdims=True)
-    # print(data)
     mean_num_streams = np.sum(data * np.arange(width), axis=2)
     print(mean_num_streams.shape, mean_num_streams)
     for i,erosion in enumerate(erosions):
         plt.plot(slopes, mean_num_streams[:,i], linestyle = '-', marker = 'o', label=(erosion))
-    # plt.yscale('log')
-    # plt.xscale('log')
     plt.ylabel('number of streams')
     plt.xlabel('mean slope')
     plt.title('Number of Streams for different Erosion Rates')
@@ -440,9 +426,6 @@ def analyze_num_streams_experiment_flow_entropy(data_file, output_file=None, slo
     print(mean_entropies)
         
     mean_num_streams_graph_flow_entropy(mean_entropies, output_file, slopes, flows)
-    # plt.imshow(num_streams[:,2])
-    # plt.colorbar()
-    # plt.show()
         
 def mean_num_streams_graph_flow_entropy(data, output_file = None, slopes=np.linspace(0.01,1,10), flows=[0.25, 0.5, 1, 2, 4]):
     """
@@ -458,16 +441,11 @@ def mean_num_streams_graph_flow_entropy(data, output_file = None, slopes=np.lins
         plot of mean number of streams depending on the parameters - saved to output_file
         plot of the histograms for each slope with constant flow - shown to user   
     """    
-    # assert data.shape[0] == len(slopes)
-    # assert data.shape[1] == len(flows)
-    # width = data.shape[2]
     print(data.shape)
-    # data = data / np.sum(data, axis=2, keepdims=True)
-    # print(data)
+
     for i,flow in enumerate(flows):
         plt.plot(slopes, data[:,i], linestyle = '-', marker = 'o', label=(flow))
-    # plt.yscale('log')
-    # plt.xscale('log')
+
     plt.title('Mean Cross Section Entropy for different Water Flow Rates')
     plt.ylabel('H')
     plt.xlabel('mean slope')
@@ -552,24 +530,14 @@ def run_and_stream():
     grids = np.zeros([num_steps, height, width, NUM_CELL_FLOATS])
     grids[0] = initial_state
 
-    # plt.imshow(grids[-1,:,:,GROUND_HEIGHT] - initial_state[:,:,GROUND_HEIGHT])
-    # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
-    # plt.colorbar()
-
     plt.savefig("data/cpptest0.png")
 
     params = default_params
     fastCA.simulate(grids, params)
 
-    # print(grids)
-    # save_video(grids, 'videos/cpp_test.mp4')
-    # print(grids)
-
-    # # plt.imshow(grids[0,:,:,WATER_HEIGHT] )
     plt.imshow(grids[-1, :, :, GROUND_HEIGHT] - initial_state[:, :, GROUND_HEIGHT])
     plt.colorbar()
     plt.show()
-    # plt.savefig('data/cpptest.png')
 
     stream_video(grids, scale=5)
 
@@ -589,7 +557,5 @@ if __name__ == "__main__":
     # analyze_num_streams_experiment_erosion('data/grids_data_erosion.npy', 'plots/slope_phase_trans_erosion.png', slopes=slopes, erosions=erosions)
     analyze_num_streams_experiment_erosion_entropy('data/grids_data_erosion.npy', 'plots/slope_phase_trans_erosion_entropy.png', slopes=slopes, erosions=erosions)
 
-    
-    
     # mean_num_streams_graph('data/num_streams_data.npy', 'plots/num_streams_phase_transition_v1.png')
     # run_and_stream()

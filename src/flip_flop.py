@@ -86,7 +86,6 @@ def stream_number_progression(width, height, ground_height, num_steps, noise_amp
 
     grids = run_fastCA(initial_state, num_steps, 1_000)
 
-    # for threshold in [1e-6, 1e-4, 1e-2]:
     threshold = 1e-6
     stream_list = []
     for grid in grids:
