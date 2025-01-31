@@ -73,7 +73,7 @@ def change_every_n_steps(
             print(gen % 10, end="", flush=True)
         gen_grids[0] = last_state
         fastCA.simulate(gen_grids, params)
-        
+
         if gen >= skip_initial_gens:
             diffs[gen] = metric(
                 last_state[:, :, WATER_HEIGHT], gen_grids[-1, :, :, WATER_HEIGHT]
