@@ -96,7 +96,7 @@ def small_grid_change_experiment(
     params=default_params,
     metric=mse,
 ):
-    """Experiment that tests teh effect of a small change to the grid."""
+    """Experiment that computes a histogram of the sizes in water height changes over a long duration."""
     np.random.seed(42)
     ground_height = height * slope
     initial_state = generate_initial_slope(
@@ -126,4 +126,5 @@ def grid_change_histogram(diffs):
 
 if __name__ == "__main__":
     file = "data/height_change_hist_w1.npy"
+    small_grid_change_experiment(file)
     grid_change_histogram(np.load(file))
